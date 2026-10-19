@@ -1,0 +1,468 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// 1. User & Authentication
+// -------------------------------------------------------------
+model User {
+  id              String                @id @default(cuid())
+  email           String                @unique
+  passwordHash    String
+  name            String
+  role            String                @default("student")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  subjects        Subject[]
+  testAttempts    TestAttempt[]
+  questionHistory QuestionResponse[]
+  topicMasteries  TopicMastery[]
+  masterySnapshots TopicMasteryHistory[]
+  spacedReviews   SpacedReviewSchedule[]
+  recommendations StudentRecommendation[]
+  conversations   TeacherConversation[]
+  savedNotes      RevisionNote[]
+  createdTests    Test[]
+}
+
+// -------------------------------------------------------------
+// 2. Syllabus Hierarchy (Official DBATU 2024-2025 First Year)
+// -------------------------------------------------------------
+model Subject {
+  id               String               @id @default(cuid())
+  userId           String?
+  user             User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code             String               // e.g., 24AF1000BS101
+  name             String               // e.g., Engineering Mathematics - I
+  category         String               // BSC, ESC, VSEC, AEC, CC
+  credits          Int                  @default(3)
+  teachingScheme   String               @default("3L-0T-0P")
+  evaluationScheme String               @default("CA:20, MSE:20, ESE:60")
+  semester         String               @default("I") // "I" or "II"
+  group            String               @default("GROUP A") // "GROUP A" or "GROUP B"
+  description      String?
+  isArchived       Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+
+  units            Unit[]
+  textbooks        TextBook[]
+  studyMaterials   StudyMaterial[]
+  tests            Test[]
+  conversations    TeacherConversation[]
+  recommendations  StudentRecommendation[]
+
+  @@index([code])
+}
+
+model Unit {
+  id          String   @id @default(cuid())
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  unitNumber  Int      // 1 to 5
+  title       String   // e.g., Linear Algebra- Matrices
+  hours       String?  // e.g., 06 Hours
+  orderIndex  Int      @default(1)
+
+  topics      Topic[]
+
+  @@index([subjectId, unitNumber])
+}
+
+model Topic {
+  id               String                 @id @default(cuid())
+  unitId           String
+  unit             Unit                   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  title            String                 // e.g., Eigen values and eigen vectors
+  description      String?
+  orderIndex       Int                    @default(1)
+  importanceWeight Float                  @default(1.0)
+  status           String                 @default("compulsory") // compulsory, optional, excluded
+
+  subtopics        Subtopic[]
+  objectives       LearningObjective[]
+  chunks           DocumentChunk[]
+  questions        Question[]
+  masteryRecords   TopicMastery[]
+  masteryHistories TopicMasteryHistory[]
+  spacedSchedules  SpacedReviewSchedule[]
+  recommendations  StudentRecommendation[]
+  revisionNotes    RevisionNote[]
+  conversations    TeacherConversation[]
+  questionResponses QuestionResponse[]
+
+  @@index([unitId])
+}
+
+model Subtopic {
+  id         String     @id @default(cuid())
+  topicId    String
+  topic      Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title      String
+  orderIndex Int        @default(1)
+
+  questions  Question[]
+
+  @@index([topicId])
+}
+
+model LearningObjective {
+  id          String     @id @default(cuid())
+  topicId     String
+  topic       Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  code        String     // e.g., CO1-LO1
+  description String
+  bloomLevel  String     @default("UNDERSTAND") // REMEMBER, UNDERSTAND, APPLY, ANALYZE, EVALUATE
+
+  questions   Question[]
+
+  @@index([topicId])
+}
+
+model TextBook {
+  id          String   @id @default(cuid())
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  title       String
+  author      String
+  publisher   String?
+  year        String?
+  isReference Boolean  @default(false)
+
+  @@index([subjectId])
+}
+
+// -------------------------------------------------------------
+// 3. Study Materials & Grounded RAG Ingestion
+// -------------------------------------------------------------
+model StudyMaterial {
+  id               String          @id @default(cuid())
+  subjectId        String
+  subject          Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId          String?
+  title            String
+  originalFilename String
+  fileType         String          // pdf, png, jpg, docx, txt
+  filePath         String
+  fileSize         Int
+  status           String          @default("INDEXED") // UPLOADED, PROCESSING, INDEXED, NEEDS_REVIEW, FAILED
+  extractedPages   Int             @default(1)
+  ocrQuality       Float           @default(1.0) // 0.0 - 1.0
+  warningMessage   String?
+  createdAt        DateTime        @default(now())
+
+  chunks           DocumentChunk[]
+
+  @@index([subjectId])
+}
+
+model DocumentChunk {
+  id              String        @id @default(cuid())
+  materialId      String
+  material        StudyMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  topicId         String?
+  topic           Topic?        @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  pageNumber      Int           @default(1)
+  sectionTitle    String?
+  content         String
+  tokenCount      Int           @default(100)
+  confidenceScore Float         @default(1.0)
+  createdAt       DateTime      @default(now())
+
+  @@index([materialId])
+  @@index([topicId])
+}
+
+// -------------------------------------------------------------
+// 4. AI Personal Teacher & Revision Notes
+// -------------------------------------------------------------
+model TeacherConversation {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId     String?
+  topic       Topic?        @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  mode        String        @default("DETAILED") // DETAILED, SIMPLE, DEEP_DIVE, EXAM_PREP, QUICK_REVISION, DOUBT_SOLVING, PRACTICE
+  title       String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  messages    ChatMessage[]
+
+  @@index([userId, subjectId])
+}
+
+model ChatMessage {
+  id                String              @id @default(cuid())
+  conversationId    String
+  conversation      TeacherConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender            String              // user, ai, system
+  content           String
+  groundedSourceIds String?             // JSON array of citation chunk metadata
+  isGrounded        Boolean             @default(true)
+  tokenCount        Int                 @default(0)
+  createdAt         DateTime            @default(now())
+
+  @@index([conversationId])
+}
+
+model RevisionNote {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId            String
+  topic              Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title              String
+  overview           String
+  keyDefinitions     String   // Markdown / JSON
+  formulas           String?  // KaTeX equations
+  processes          String?  // Step-by-step
+  importantExamples  String?  // Examples
+  commonMistakes     String?  // Misconceptions
+  frequentlyConfused String?  // Contrast table
+  examTakeaways      String?
+  shortQuestions     String?  // Questions & answers
+  flashcardsJson     String?  // [{front: string, back: string}]
+  quickSummary       String
+  isSaved            Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId, topicId])
+}
+
+// -------------------------------------------------------------
+// 5. Intelligent Tests & Validation
+// -------------------------------------------------------------
+model Test {
+  id                         String             @id @default(cuid())
+  userId                     String
+  user                       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId                  String
+  subject                    Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  title                      String
+  scopeType                  String             // TOPIC, UNIT, MULTI_UNIT, FULL_SUBJECT, DIAGNOSTIC, ADAPTIVE_WEAKNESS
+  scopeConfigJson            String             // JSON array of topic or unit IDs
+  difficulty                 String             @default("MEDIUM") // FOUNDATION, MEDIUM, ADVANCED, MIXED_ADAPTIVE
+  timeLimitMinutes           Int                @default(30)
+  totalMarks                 Float              @default(50.0)
+  totalQuestions             Int                @default(10)
+  showExplanationsImmediately Boolean            @default(false)
+  status                     String             @default("READY")
+  createdAt                  DateTime           @default(now())
+
+  questions                  Question[]
+  attempts                   TestAttempt[]
+  auditLogs                  AdaptiveAuditLog[]
+
+  @@index([userId, subjectId])
+}
+
+model Question {
+  id                  String               @id @default(cuid())
+  testId              String
+  test                Test                 @relation(fields: [testId], references: [id], onDelete: Cascade)
+  topicId             String
+  topic               Topic                @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  subtopicId          String?
+  subtopic            Subtopic?            @relation(fields: [subtopicId], references: [id], onDelete: SetNull)
+  learningObjectiveId String?
+  learningObjective   LearningObjective?   @relation(fields: [learningObjectiveId], references: [id], onDelete: SetNull)
+  parentQuestionId    String?              // for variants / repeats
+  
+  questionText        String
+  questionType        String               // MCQ, MULTI_SELECT, TRUE_FALSE, FILL_BLANK, NUMERICAL, CONCEPTUAL_SHORT, APPLICATION_LONG
+  difficulty          String               @default("MEDIUM") // EASY, MEDIUM, HARD
+  bloomLevel          String               @default("UNDERSTAND")
+  cognitiveSkill      String?              // recall, computation, conceptual, derivation, application
+  optionsJson         String?              // JSON array for options
+  correctKey          String               // correct option or text/number
+  toleranceMin        Float?               // For numericals
+  toleranceMax        Float?
+  rubricJson          String?              // Subjective marking rubric
+  explanation         String
+  maxMarks            Float                @default(4.0)
+  sourceReference     String?              // DBATU syllabus module / textbook page
+  validationStatus    String               @default("VALID") // VALID, FLAGGED, REJECTED
+  isReattempt         Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+
+  responses           QuestionResponse[]
+  validations         QuestionValidation[]
+
+  @@index([testId, topicId])
+}
+
+model QuestionValidation {
+  id                 String   @id @default(cuid())
+  questionId         String
+  question           Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  checkedAt          DateTime @default(now())
+  syllabusAligned    Boolean  @default(true)
+  factuallySupported Boolean  @default(true)
+  unambiguous        Boolean  @default(true)
+  evaluatorRemarks   String?
+
+  @@index([questionId])
+}
+
+// -------------------------------------------------------------
+// 6. Test Attempts & Granular Historical Records (Requirement A)
+// -------------------------------------------------------------
+model TestAttempt {
+  id                       String             @id @default(cuid())
+  testId                   String
+  test                     Test               @relation(fields: [testId], references: [id], onDelete: Cascade)
+  userId                   String
+  user                     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt                DateTime           @default(now())
+  submittedAt              DateTime?
+  durationSeconds          Int                @default(0)
+  totalScore               Float              @default(0.0)
+  maxScore                 Float              @default(0.0)
+  percentage               Float              @default(0.0)
+  status                   String             @default("IN_PROGRESS") // IN_PROGRESS, SUBMITTED, ABANDONED
+  masteryImpactSummaryJson String?
+
+  responses                QuestionResponse[]
+
+  @@index([testId, userId])
+}
+
+model QuestionResponse {
+  id                  String      @id @default(cuid())
+  attemptId           String
+  attempt             TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId          String
+  question            Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId             String
+  topic               Topic       @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  studentAnswer       String?
+  isCorrect           Boolean?    // true, false, or null for partial
+  marksAwarded        Float       @default(0.0)
+  marksDeducted       Float       @default(0.0)
+  durationSeconds     Int         @default(0)
+  errorTaxonomy       String      @default("NONE") // CONCEPTUAL_MISUNDERSTANDING, FACTUAL_KNOWLEDGE_GAP, FORMULA_SELECTION_ERROR, CALCULATION_ERROR, QUESTION_MISINTERPRETATION, INCOMPLETE_ANSWER, SIMILAR_CONCEPT_CONFUSION, CARELESS_MISTAKE, NONE, INSUFFICIENT_EVIDENCE
+  evaluatorFeedback   String?
+  evaluatorConfidence Float       @default(1.0)
+  priorConceptScore   Float?      // score/mastery student had before this answer
+  timestamp           DateTime    @default(now())
+
+  @@index([attemptId])
+  @@index([userId, topicId])
+  @@index([questionId])
+}
+
+// -------------------------------------------------------------
+// 7. Adaptive Intelligence & Retention Re-Testing (Requirements B & C)
+// -------------------------------------------------------------
+model TopicMastery {
+  id                   String                @id @default(cuid())
+  userId               String
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId              String
+  topic                Topic                 @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  currentMastery       Float                 @default(0.0) // 0 to 100
+  retentionScore       Float                 @default(0.0) // 0 to 100 (Ebbinghaus decay)
+  evidenceConfidence   Float                 @default(0.0) // 0 to 100
+  totalAttempts        Int                   @default(0)
+  correctAttempts      Int                   @default(0)
+  recentAccuracy       Float                 @default(0.0)
+  consecutiveCorrect   Int                   @default(0)
+  primaryErrorCategory String?               @default("NONE")
+  errorDistributionJson String?              // JSON counts per error type
+  lastAssessedAt       DateTime?
+  nextReviewDate       DateTime?
+  updatedAt            DateTime              @updatedAt
+
+  snapshots            TopicMasteryHistory[]
+
+  @@unique([userId, topicId])
+  @@index([userId, currentMastery])
+}
+
+model TopicMasteryHistory {
+  id                String       @id @default(cuid())
+  topicMasteryId    String
+  topicMastery      TopicMastery @relation(fields: [topicMasteryId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId           String
+  topic             Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  attemptId         String?
+  previousMastery   Float
+  newMastery        Float
+  previousRetention Float
+  newRetention      Float
+  confidence        Float
+  eventReason       String       // TEST_COMPLETION, SPACED_DECAY, DIAGNOSTIC, REVISION
+  recordedAt        DateTime     @default(now())
+
+  @@index([topicMasteryId])
+  @@index([userId, topicId])
+}
+
+model SpacedReviewSchedule {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId          String
+  topic            Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  intervalDays     Float     @default(1.0)
+  repetitionNumber Int       @default(0)
+  easeFactor       Float     @default(2.5) // SuperMemo SM-2 standard
+  dueDate          DateTime  @default(now())
+  lastReviewDate   DateTime?
+  lastScore        Float?
+  status           String    @default("PENDING") // PENDING, DUE, OVERDUE, COMPLETED
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([userId, topicId])
+  @@index([userId, dueDate])
+}
+
+model AdaptiveAuditLog {
+  id                        String   @id @default(cuid())
+  userId                    String
+  testId                    String
+  test                      Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  selectionFormula          String
+  topicPriorityWeightsJson  String   // JSON of Priority score calculations
+  decisionRationale         String
+  createdAt                 DateTime @default(now())
+
+  @@index([userId, testId])
+}
+
+model StudentRecommendation {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId            String
+  subject              Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topicId              String
+  topic                Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  recommendationType   String   // REVISE_CONCEPTS, PRACTICE_APPLICATIONS, TAKE_RETENTION_TEST, DIAGNOSTIC_ASSESSMENT, RESOLVE_MISCONCEPTION
+  title                String
+  reasonExplanation    String
+  priorityScore        Float    @default(50.0)
+  actionUrl            String
+  isResolved           Boolean  @default(false)
+  createdAt            DateTime @default(now())
+
+  @@index([userId, subjectId])
+}
