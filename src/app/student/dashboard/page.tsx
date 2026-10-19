@@ -361,13 +361,6 @@ export default async function DashboardPage() {
                 <span className="text-slate-400 font-mono">3 Cr</span>
               </Link>
               <Link
-                href="/student/subjects/subj-24AF2EGRES204"
-                className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
-              >
-                <span>[EG] Engg. Graphics</span>
-                <span className="text-slate-400 font-mono">2 Cr</span>
-              </Link>
-              <Link
                 href="/student/subjects/subj-24AF1000ES206"
                 className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
               >
@@ -380,6 +373,13 @@ export default async function DashboardPage() {
               >
                 <span>[BCME] Basic Civil & Mechanical</span>
                 <span className="text-slate-400 font-mono">3 Cr</span>
+              </Link>
+              <Link
+                href="/student/subjects/subj-24AF2EGRES204"
+                className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
+              >
+                <span>[EG] Engg. Graphics</span>
+                <span className="text-slate-400 font-mono">2 Cr</span>
               </Link>
               <Link
                 href="/student/subjects/subj-24AF1EEEES209"

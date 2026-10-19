@@ -46,6 +46,7 @@ model Subject {
   evaluationScheme String               @default("CA:20, MSE:20, ESE:60")
   semester         String               @default("I") // "I" or "II"
   group            String               @default("GROUP A") // "GROUP A" or "GROUP B"
+  orderIndex       Int                  @default(0)
   description      String?
   isArchived       Boolean              @default(false)
   createdAt        DateTime             @default(now())

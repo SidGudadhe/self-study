@@ -853,6 +853,18 @@ async function main() {
     }
   ];
 
+  const SUBJECT_ORDER_MAP = {
+    '24AF1000BS101': 1, // Math (Engineering Mathematics – I)
+    '24AF2PHYBS202': 2, // Physics (Engineering Physics)
+    '24AF1000ES206': 3, // BEEE (Basic Electrical and Electronics Engineering)
+    '24AF2CMEES208': 4, // BCME (Basic Civil and Mechanical Engineering)
+    '24AF2EGRES204': 5, // EG (Engineering Graphics)
+    '24AF1EEEES209': 6, // EEE (Energy and Environmental Engineering)
+    '24AF1000VS211': 7, // DT (Design Thinking)
+    '24AF1000IK210': 8, // IKS (Indian Knowledge System)
+    '24AF1000CC212A': 9, // CC-IPD (Integrated Personality Development)
+  };
+
   for (const subj of semester1Subjects) {
     console.log(`Seeding Semester 1 subject: [${subj.abbreviation}] ${subj.code} - ${subj.name}...`);
     const createdSubj = await prisma.subject.create({
@@ -866,6 +878,7 @@ async function main() {
         evaluationScheme: subj.evaluationScheme,
         semester: 'I',
         group: subj.group,
+        orderIndex: SUBJECT_ORDER_MAP[subj.code] || 99,
         description: `${subj.description} • Faculty: ${subj.faculty}`,
         userId: student.id,
       },

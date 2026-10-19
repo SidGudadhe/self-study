@@ -10,7 +10,7 @@ export default async function NewTestPage({
   searchParams: { subjectId?: string; topicId?: string; unitId?: string };
 }) {
   const subjects = await prisma.subject.findMany({
-    orderBy: { code: 'asc' },
+    orderBy: { orderIndex: 'asc' },
     include: {
       units: {
         orderBy: { unitNumber: 'asc' },

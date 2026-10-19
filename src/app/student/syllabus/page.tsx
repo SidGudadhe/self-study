@@ -21,7 +21,7 @@ export default async function SyllabusManagerPage() {
         },
       },
     },
-    orderBy: { code: 'asc' },
+    orderBy: { orderIndex: 'asc' },
   });
 
   return (

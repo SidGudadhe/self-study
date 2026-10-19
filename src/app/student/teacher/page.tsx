@@ -10,7 +10,7 @@ export default async function TeacherPage({
   searchParams: { subjectId?: string; topicId?: string; mode?: string };
 }) {
   const subjects = await prisma.subject.findMany({
-    orderBy: { code: 'asc' },
+    orderBy: { orderIndex: 'asc' },
     include: {
       units: {
         orderBy: { unitNumber: 'asc' },
