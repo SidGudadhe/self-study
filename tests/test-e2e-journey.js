@@ -14,7 +14,7 @@ async function runEndToEndJourney() {
   const unitCount = await prisma.unit.count();
   const topicCount = await prisma.topic.count();
   console.log(`✓ Found ${subjectCount} subjects, ${unitCount} units, and ${topicCount} topics.`);
-  assert.strictEqual(subjectCount, 12, 'All 12 DBATU First Year subjects must be present');
+  assert.strictEqual(subjectCount, 9, 'All 9 DBATU First Year Semester 1 Timetable subjects must be present');
   assert(topicCount >= 30, 'Curriculum topics must be comprehensively populated');
 
   // Step 2: Grounded Notes & RAG Chunks Verification

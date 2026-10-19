@@ -343,42 +343,77 @@ export default async function DashboardPage() {
           {/* Quick Subject Access */}
           <div className="p-5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-indigo-400" /> First Year Subjects
+              <BookOpen className="w-4 h-4 text-indigo-400" /> Semester I Timetable Subjects
             </h3>
             <div className="space-y-2 text-xs">
               <Link
                 href="/student/subjects/subj-24AF1000BS101"
                 className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
               >
-                <span>Engineering Mathematics - I</span>
+                <span>[EM-I] Engg. Mathematics - I</span>
                 <span className="text-slate-400 font-mono">3 Cr</span>
               </Link>
               <Link
-                href="/student/subjects/subj-24AF1CHEBS102"
+                href="/student/subjects/subj-24AF2PHYBS202"
                 className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
               >
-                <span>Engineering Chemistry</span>
+                <span>[PHY] Engg. Physics</span>
                 <span className="text-slate-400 font-mono">3 Cr</span>
               </Link>
               <Link
-                href="/student/subjects/subj-24AF1EMES104"
+                href="/student/subjects/subj-24AF2EGRES204"
                 className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
               >
-                <span>Engineering Mechanics</span>
+                <span>[EG] Engg. Graphics</span>
+                <span className="text-slate-400 font-mono">2 Cr</span>
+              </Link>
+              <Link
+                href="/student/subjects/subj-24AF1000ES206"
+                className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
+              >
+                <span>[BEE] Basic Electrical & Electronics</span>
                 <span className="text-slate-400 font-mono">3 Cr</span>
               </Link>
               <Link
-                href="/student/subjects/subj-24AF1000ES106"
+                href="/student/subjects/subj-24AF2CMEES208"
                 className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
               >
-                <span>Programming for Problem Solving</span>
+                <span>[BCME] Basic Civil & Mechanical</span>
+                <span className="text-slate-400 font-mono">3 Cr</span>
+              </Link>
+              <Link
+                href="/student/subjects/subj-24AF1EEEES209"
+                className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
+              >
+                <span>[EEE] Energy & Environmental Engg.</span>
+                <span className="text-slate-400 font-mono">Audit</span>
+              </Link>
+              <Link
+                href="/student/subjects/subj-24AF1000VS211"
+                className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
+              >
+                <span>[DT] Design Thinking</span>
+                <span className="text-slate-400 font-mono">2 Cr</span>
+              </Link>
+              <Link
+                href="/student/subjects/subj-24AF1000IK210"
+                className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
+              >
+                <span>[IKS] Indian Knowledge System</span>
+                <span className="text-slate-400 font-mono">2 Cr</span>
+              </Link>
+              <Link
+                href="/student/subjects/subj-24AF1000CC212A"
+                className="flex items-center justify-between p-2 rounded hover:bg-slate-800/60 text-slate-300 transition-colors"
+              >
+                <span>[CC-IPD] Integrated Personality Dev.</span>
                 <span className="text-slate-400 font-mono">2 Cr</span>
               </Link>
               <Link
                 href="/student/subjects"
                 className="block text-center text-xs text-indigo-400 pt-2 hover:underline"
               >
-                Browse all 12 curriculum subjects →
+                View full Semester I curriculum →
               </Link>
             </div>
           </div>

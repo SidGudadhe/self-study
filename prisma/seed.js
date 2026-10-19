@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('--- Starting CogniStudy Database Seeding with DBATU First Year Syllabus ---');
+  console.log('--- Starting CogniStudy Database Seeding with DBATU Semester 1 Timetable Subjects ---');
 
   // 1. Create Default Demo Student & Demo Admin
   const studentPassword = await bcrypt.hash('student123', 10);
@@ -26,25 +26,31 @@ async function main() {
     create: {
       email: 'admin@dbatu.ac.in',
       passwordHash: adminPassword,
-      name: 'Prof. DBATU Academic Dean',
+      name: 'Prof. Akshay Kate (Class Teacher - Div C)',
       role: 'admin',
     },
   });
 
   console.log(`Users created: ${student.email} and ${admin.email}`);
 
-  // 2. Syllabus Data extracted directly from DBATU NEP 2024-2025 curriculum
-  const syllabusData = [
+  // Delete all existing subjects to ensure ONLY Semester 1 timetable subjects exist
+  console.log('Clearing old subjects not in Semester 1 timetable...');
+  await prisma.subject.deleteMany({});
+
+  // 2. Syllabus Data extracted directly from DBATU NEP 2024-2025 curriculum matching the Semester 1 Timetable (Div C - Group B)
+  const semester1Subjects = [
     {
       code: '24AF1000BS101',
       name: 'Engineering Mathematics – I',
+      abbreviation: 'EM-I',
       category: 'BSC',
       credits: 3,
-      teachingScheme: '3L-0T-0P',
+      teachingScheme: '3L-0T-0P (Theory: 4h/week)',
       evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
       semester: 'I',
-      group: 'GROUP A',
-      description: 'Foundations of Linear Algebra, Matrices, Partial Differentiation, Multiple Integrals and Curve Tracing.',
+      group: 'GROUP B',
+      faculty: 'Ms. Ahilya Vishnu Narsale',
+      description: 'Foundations of Linear Algebra, Matrices, Partial Differentiation, Applications, Reduction Formulae and Multiple Integrals.',
       textbooks: [
         { title: 'Higher Engineering Mathematics', author: 'B. S. Grewal', publisher: 'Khanna Publishers, New Delhi' },
         { title: 'Advanced Engineering Mathematics', author: 'Erwin Kreyszig', publisher: 'John Wiley & Sons' },
@@ -72,14 +78,14 @@ async function main() {
             },
             {
               title: 'Consistency of Linear Systems',
-              subtopics: ['Rouché-Capelli Theorem', 'Non-homogeneous systems AX=B', 'Homogeneous systems AX=0 and trivial/non-trivial solutions'],
+              subtopics: ['Rouché-Capelli Theorem', 'Non-homogeneous systems AX=B', 'Homogeneous systems AX=0'],
               objectives: [
                 { code: 'M1-U1-LO3', description: 'Determine consistency and unique, infinite, or no-solution conditions for linear systems', bloomLevel: 'APPLY' }
               ]
             },
             {
               title: 'Eigen values and Eigen vectors',
-              subtopics: ['Characteristic equation', 'Eigenvector determination', 'Properties of eigenvalues (trace, determinant, triangular matrices)'],
+              subtopics: ['Characteristic equation', 'Eigenvector determination', 'Properties of eigenvalues'],
               objectives: [
                 { code: 'M1-U1-LO4', description: 'Calculate eigenvalues and corresponding eigenvectors of matrices', bloomLevel: 'APPLY' }
               ]
@@ -122,7 +128,7 @@ async function main() {
           topics: [
             {
               title: 'Jacobians and Properties',
-              subtopics: ['Definition of Jacobian determinant', 'Chain rule for Jacobians', 'Functional dependency & Jacobian vanishing test'],
+              subtopics: ['Definition of Jacobian determinant', 'Chain rule for Jacobians', 'Functional dependency test'],
               objectives: [{ code: 'M1-U3-LO1', description: 'Evaluate Jacobians and establish functional dependency between multivariable expressions', bloomLevel: 'ANALYZE' }]
             },
             {
@@ -154,7 +160,7 @@ async function main() {
             },
             {
               title: 'Tracing of Standard Curves',
-              subtopics: ['Cartesian curve tracing rules (symmetry, origin, tangents, asymptotes, regions)', 'Parametric curves (Cycloid, Astroid)', 'Polar curves (Cardioid, Lemniscate, Rose petals)'],
+              subtopics: ['Cartesian curve tracing rules (symmetry, origin, tangents, asymptotes, regions)', 'Parametric curves', 'Polar curves (Cardioid, Lemniscate)'],
               objectives: [{ code: 'M1-U4-LO2', description: 'Identify symmetries, asymptotes and sketch standard curves in Cartesian, parametric, and polar coordinates', bloomLevel: 'ANALYZE' }]
             }
           ]
@@ -176,575 +182,8 @@ async function main() {
             },
             {
               title: 'Triple Integrals and Geometric Applications',
-              subtopics: ['Volume as triple integral', 'Surface area as double integral', 'Cylindrical & Spherical coordinate conversions'],
+              subtopics: ['Volume as triple integral', 'Surface area as double integral', 'Cylindrical coordinate conversions'],
               objectives: [{ code: 'M1-U5-LO3', description: 'Calculate physical volumes and surface areas using multiple integrals', bloomLevel: 'APPLY' }]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      code: '24AF1CHEBS102',
-      name: 'Engineering Chemistry',
-      category: 'BSC',
-      credits: 3,
-      teachingScheme: '3L-0T-0P',
-      evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'I',
-      group: 'GROUP A',
-      description: 'Chemical principles in engineering: Water treatment, fuels, electrochemistry, instrumental methods, and engineering materials.',
-      textbooks: [
-        { title: 'Engineering Chemistry', author: 'P. C. Jain & Monica Jain', publisher: 'Dhanpat Rai & Sons' },
-        { title: 'Engineering Chemistry- Fundamentals and applications', author: 'Shikha Agarwal', publisher: 'Cambridge Publishers' }
-      ],
-      units: [
-        {
-          unitNumber: 1,
-          title: 'Water Treatment',
-          hours: '07 Hours',
-          topics: [
-            {
-              title: 'Hard and Soft Water & Disadvantages',
-              subtopics: ['Types of hardness (temporary vs permanent)', 'Boiler troubles: sludge & scale, priming & foaming, caustic embrittlement'],
-              objectives: [{ code: 'CH-U1-LO1', description: 'Classify water hardness and diagnose industrial boiler issues caused by impurities', bloomLevel: 'UNDERSTAND' }]
-            },
-            {
-              title: 'Softening Processes: Ion Exchange, Lime-Soda & RO',
-              subtopics: ['Zeolite process', 'Synthetic ion exchange resins (cation & anion)', 'Hot Lime-Soda process stoichiometry', 'Reverse Osmosis membrane separation'],
-              objectives: [{ code: 'CH-U1-LO2', description: 'Compare water softening mechanisms and select optimal treatment for industrial feedwater', bloomLevel: 'ANALYZE' }]
-            },
-            {
-              title: 'Hardness and Dissolved Oxygen Determinations',
-              subtopics: ['EDTA complexometric titration with EBT indicator', 'Winkler’s iodometric titration for DO', 'Hardness numericals in ppm CaCO3 equivalents'],
-              objectives: [{ code: 'CH-U1-LO3', description: 'Perform quantitative calculations of water hardness and dissolved oxygen', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Domestic Water Treatment',
-              subtopics: ['Aeration', 'Sedimentation & Coagulation', 'Disinfection methods (Chlorination, Breakpoint chlorination, UV treatment)'],
-              objectives: [{ code: 'CH-U1-LO4', description: 'Explain step-by-step municipal potable water purification', bloomLevel: 'UNDERSTAND' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 2,
-          title: 'Fuels and Lubricants',
-          hours: '08 Hours',
-          topics: [
-            {
-              title: 'Fuels & Calorific Value Measurements',
-              subtopics: ['Gross vs Net Calorific Value (GCV & NCV)', 'Bomb Calorimeter construction, working and numericals', 'Boy’s Gas Calorimeter'],
-              objectives: [{ code: 'CH-U2-LO1', description: 'Determine fuel calorific value experimentally and numerically using bomb and Boy’s calorimeters', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Analysis of Coal & Petroleum Refining',
-              subtopics: ['Proximate analysis (moisture, volatile matter, ash, fixed carbon)', 'Ultimate analysis (C, H, N, S, O)', 'Fractional distillation of crude oil'],
-              objectives: [{ code: 'CH-U2-LO2', description: 'Assess coal industrial quality from proximate/ultimate data and describe crude oil fractions', bloomLevel: 'ANALYZE' }]
-            },
-            {
-              title: 'Lubricant Classification & Properties',
-              subtopics: ['Solid, semi-solid, and liquid lubricants', 'Viscosity and Viscosity Index', 'Flash point and Fire point (Pensky-Martens)', 'Acid value and Saponification value numericals'],
-              objectives: [{ code: 'CH-U2-LO3', description: 'Select appropriate industrial lubricants based on physical and chemical testing parameters', bloomLevel: 'EVALUATE' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 3,
-          title: 'Electrochemistry and Energy Storage',
-          hours: '07 Hours',
-          topics: [
-            {
-              title: 'Electrical Conductance & Conductometric Titrations',
-              subtopics: ['Specific, equivalent, and molar conductance', 'Cell constant determination via Wheatstone bridge', 'Titration curves: strong acid-strong base, weak acid-strong base'],
-              objectives: [{ code: 'CH-U3-LO1', description: 'Analyze conductometric titration curves and calculate cell constants', bloomLevel: 'ANALYZE' }]
-            },
-            {
-              title: 'pH Measurement & Indicator Theory',
-              subtopics: ['Glass electrode potential & construction', 'Ostwald’s theory and Quinonoid theory of acid-base indicators'],
-              objectives: [{ code: 'CH-U3-LO2', description: 'Explain potentiometric pH determination using glass electrodes and color change mechanisms', bloomLevel: 'UNDERSTAND' }]
-            },
-            {
-              title: 'Fuel Cells & Rechargeable Lithium Batteries',
-              subtopics: ['Hydrogen-Oxygen fuel cell reactions and efficiency', 'Lithium-ion battery: intercalation mechanisms, cathode/anode materials, safety'],
-              objectives: [{ code: 'CH-U3-LO3', description: 'Examine electrochemical redox mechanisms in fuel cells and modern lithium-ion batteries', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 4,
-          title: 'Instrumental Methods of Analysis',
-          hours: '07 Hours',
-          topics: [
-            {
-              title: 'UV-Visible Spectroscopy',
-              subtopics: ['Beer-Lambert’s Law & derivation', 'Double beam spectrophotometer optics & detector', 'Electronic transitions (sigma-sigma*, pi-pi*, n-pi*)'],
-              objectives: [{ code: 'CH-U4-LO1', description: 'Apply Beer-Lambert’s law to quantitative spectrophotometric concentration determinations', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Flame Photometry & Chromatography',
-              subtopics: ['Flame photometry principle (excitation of alkali metals Na, K)', 'Thin Layer Chromatography (TLC): stationary phase, mobile phase, Rf value'],
-              objectives: [{ code: 'CH-U4-LO2', description: 'Interpret emission spectroscopy for alkali metals and chromatographic separation parameters', bloomLevel: 'UNDERSTAND' }]
-            },
-            {
-              title: 'Infrared (IR) Spectroscopy',
-              subtopics: ['Vibrational modes (stretching & bending)', 'Fingerprint region vs functional group region', 'Double beam IR spectrophotometer applications'],
-              objectives: [{ code: 'CH-U4-LO3', description: 'Identify characteristic organic functional groups from infrared vibrational absorption frequencies', bloomLevel: 'ANALYZE' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 5,
-          title: 'Engineering Materials',
-          hours: '07 Hours',
-          topics: [
-            {
-              title: 'Cement and Gypsum',
-              subtopics: ['Portland cement chemical composition (Bogue compounds C3S, C2S, C3A, C4AF)', 'Setting and hardening reactions', 'Plaster of Paris manufacture, properties, and uses'],
-              objectives: [{ code: 'CH-U5-LO1', description: 'Describe chemical hydration and setting chemistry of Portland cement and gypsum', bloomLevel: 'UNDERSTAND' }]
-            },
-            {
-              title: 'Polymers and Plastics',
-              subtopics: ['Addition vs Condensation polymerization', 'Thermoplastic vs Thermosetting resins', 'Synthesis, properties and uses of Urea-formaldehyde'],
-              objectives: [{ code: 'CH-U5-LO2', description: 'Differentiate polymer classifications and synthesize thermosetting urea-formaldehyde resin', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Natural & Synthetic Rubbers',
-              subtopics: ['Natural rubber (cis-1,4-polyisoprene) & vulcanization with sulfur', 'Synthesis and applications of Styrene-Butadiene Rubber (SBR)'],
-              objectives: [{ code: 'CH-U5-LO3', description: 'Explain vulcanization chemistry and evaluate industrial elastomer applications', bloomLevel: 'UNDERSTAND' }]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      code: '24AF1EMES104',
-      name: 'Engineering Mechanics',
-      category: 'ESC',
-      credits: 3,
-      teachingScheme: '3L-0T-0P',
-      evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'I',
-      group: 'GROUP A',
-      description: 'Statics, force systems, trusses, friction, centroids, particle kinematics, and kinetics.',
-      textbooks: [
-        { title: 'Engineering Mechanics', author: 'S. Timoshenko, D. H. Young', publisher: 'McGraw Hill' },
-        { title: 'Engineering Mechanics', author: 'Tayal A. K.', publisher: 'Umesh Publications' },
-        { title: 'Engineering Mechanics', author: 'Bhavikatti S. S.', publisher: 'New Age International' }
-      ],
-      units: [
-        {
-          unitNumber: 1,
-          title: 'Introduction and Fundamental Principles',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'Force Systems, Resolution and Composition',
-              subtopics: ['Coplanar force systems', 'Resolution into rectangular components', 'Resultant of concurrent and non-concurrent force systems'],
-              objectives: [{ code: 'EM-M1-LO1', description: 'Resolve complex force systems and calculate resultant magnitude, direction and point of application', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Moments, Couples and Varignon’s Theorem',
-              subtopics: ['Moment of a force about a point', 'Couple properties', 'Varignon’s principle of moments'],
-              objectives: [{ code: 'EM-M1-LO2', description: 'Apply Varignon’s theorem to determine line of action and resultant moment of non-concurrent forces', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Free Body Diagrams & Lami’s Theorem',
-              subtopics: ['Types of supports (roller, hinged, fixed)', 'Drawing accurate FBDs', 'Lami’s theorem for 3 concurrent equilibrium forces'],
-              objectives: [{ code: 'EM-M1-LO3', description: 'Construct accurate free body diagrams and apply Lami’s theorem to solve static particle equilibria', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 2,
-          title: 'Equilibrium, Centroid and Friction',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'Static Equilibrium Conditions',
-              subtopics: ['Analytical equations sigma Fx=0, sigma Fy=0, sigma M=0', 'Equilibrium of parallel and non-concurrent forces'],
-              objectives: [{ code: 'EM-M2-LO1', description: 'Solve equations of static equilibrium for coplanar structural bodies', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Centroid and Moment of Inertia of Composite Shapes',
-              subtopics: ['Centroid formulas for T-sections, I-sections, and L-angles', 'Parallel axis theorem & perpendicular axis theorem', 'Moment of inertia of standard planer shapes'],
-              objectives: [{ code: 'EM-M2-LO2', description: 'Calculate centroid coordinates and second moment of area for composite structural cross-sections', bloomLevel: 'ANALYZE' }]
-            },
-            {
-              title: 'Coulomb’s Laws of Friction and Applications',
-              subtopics: ['Limiting friction, coefficient of friction mu', 'Angle of friction and angle of repose', 'Wedge friction and ladder friction equilibrium'],
-              objectives: [{ code: 'EM-M2-LO3', description: 'Analyze dry friction in wedges, blocks on inclined planes, and ladder problems', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 3,
-          title: 'Beams and Trusses',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'Beam Reactions for Simply Supported and Continuous Beams',
-              subtopics: ['Point loads, Uniformly Distributed Loads (UDL), Uniformly Varying Loads (UVL)', 'Support reaction calculations for simply supported beams'],
-              objectives: [{ code: 'EM-M3-LO1', description: 'Compute support reactions for statically determinate beams under combined UDL, UVL, and point loads', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Analysis of Plane Trusses by Method of Joints and Sections',
-              subtopics: ['Perfect, deficient, and redundant trusses', 'Zero-force member identification', 'Method of joints equilibrium', 'Method of sections cutting planes'],
-              objectives: [{ code: 'EM-M3-LO2', description: 'Calculate axial member forces in pin-jointed trusses using method of joints and method of sections', bloomLevel: 'ANALYZE' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 4,
-          title: 'Kinematics of Particles',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'Rectilinear Motion & Motion Diagrams',
-              subtopics: ['Position, velocity, and acceleration relations', 'Constant vs variable acceleration differential equations', 's-t, v-t, and a-t curves interpretation'],
-              objectives: [{ code: 'EM-M4-LO1', description: 'Analyze rectilinear motion under variable acceleration and sketch motion diagrams', bloomLevel: 'ANALYZE' }]
-            },
-            {
-              title: 'Curvilinear Motion: Projectile & Relative Velocity',
-              subtopics: ['Motion under gravity', 'Projectile trajectory, maximum height, time of flight, horizontal range', 'Relative velocity vector analysis'],
-              objectives: [{ code: 'EM-M4-LO2', description: 'Calculate trajectory parameters of projectiles and solve relative velocity problems', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 5,
-          title: 'Kinetics and Work, Power, Energy',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'D’Alembert’s Principle in Linear Translation',
-              subtopics: ['Inertia force concept (-ma)', 'Dynamic equilibrium equations for translating particles and connected bodies'],
-              objectives: [{ code: 'EM-M5-LO1', description: 'Apply D’Alembert’s principle to analyze accelerating connected bodies on inclined planes', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Work-Energy Principle & Conservation of Energy',
-              subtopics: ['Work done by gravity, spring, and friction forces', 'Kinetic energy and potential energy', 'Work-energy theorem for particles'],
-              objectives: [{ code: 'EM-M5-LO2', description: 'Solve kinetic problems using work-energy theorem and conservation of mechanical energy', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Impulse, Momentum and Collision of Elastic Bodies',
-              subtopics: ['Linear impulse-momentum equation', 'Direct central impact', 'Coefficient of restitution e', 'Loss of kinetic energy during impact'],
-              objectives: [{ code: 'EM-M5-LO3', description: 'Evaluate velocities and energy dissipation during elastic and inelastic collisions', bloomLevel: 'ANALYZE' }]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      code: '24AF1000ES106',
-      name: 'Programming for Problem Solving',
-      category: 'ESC',
-      credits: 2,
-      teachingScheme: '2L-0T-0P',
-      evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'I',
-      group: 'GROUP A',
-      description: 'Fundamentals of computing, C programming language, control flow, functions, arrays, pointers, structures, and files.',
-      textbooks: [
-        { title: 'Programming with C', author: 'R. S. Bichkar', publisher: 'Orient Blackswan' },
-        { title: 'Programming in ANSI C', author: 'E. Balagurusamy', publisher: 'Tata McGraw-Hill' },
-        { title: 'The C Programming Language', author: 'Brian W. Kernighan, Dennis M. Ritchie', publisher: 'PHI' }
-      ],
-      units: [
-        {
-          unitNumber: 1,
-          title: 'Fundamentals of Computers and Programming Process',
-          hours: '05 Hours',
-          topics: [
-            {
-              title: 'Computer Anatomy, Memory & OS Overview',
-              subtopics: ['Von Neumann architecture: CPU, ALU, CU, Registers', 'Primary memory (RAM, ROM) vs Secondary memory', 'System software vs Application software'],
-              objectives: [{ code: 'PPS-U1-LO1', description: 'Explain computer architectural hierarchy, memory management, and operating system functions', bloomLevel: 'UNDERSTAND' }]
-            },
-            {
-              title: 'Algorithms, Flowcharts & Compilation Process',
-              subtopics: ['Algorithm design properties', 'Flowchart symbols and constructs', 'C translation pipeline: Preprocessing, Compiling, Assembling, Linking, Loading'],
-              objectives: [{ code: 'PPS-U1-LO2', description: 'Design algorithmic flowcharts and trace the multi-stage C compilation and execution pipeline', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 2,
-          title: 'Types, Operators and Expressions',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'C Tokens, Data Types and Variable Declarations',
-              subtopics: ['Keywords, Identifiers, Literals', 'Primitive data types (int, float, double, char) and qualifiers (signed, unsigned, short, long)', 'Constants and variable scope initialization'],
-              objectives: [{ code: 'PPS-U2-LO1', description: 'Select appropriate data types and evaluate storage size and memory representation of C primitives', bloomLevel: 'UNDERSTAND' }]
-            },
-            {
-              title: 'Operators, Precedence and Type Conversions',
-              subtopics: ['Arithmetic, Relational, Logical operators', 'Bitwise operators (&, |, ^, ~, <<, >>)', 'Increment/Decrement (++a vs a++)', 'Operator precedence and associativity table', 'Implicit vs Explicit type casting'],
-              objectives: [{ code: 'PPS-U2-LO2', description: 'Evaluate complex C expressions adhering strictly to precedence rules and type casting behaviors', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 3,
-          title: 'Control Flow and Functions',
-          hours: '07 Hours',
-          topics: [
-            {
-              title: 'Conditional Branching Statements',
-              subtopics: ['If-else statement and nested if-else', 'Else-if ladder', 'Switch-case statement with break, default and fallthrough'],
-              objectives: [{ code: 'PPS-U3-LO1', description: 'Implement decision-making algorithms using if-else ladders and switch statements', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Iterative Loops and Jump Statements',
-              subtopics: ['Entry controlled: while, for loops', 'Exit controlled: do-while loop', 'break, continue, and goto jump labels'],
-              objectives: [{ code: 'PPS-U3-LO2', description: 'Construct iterative loops for sequence generation, summation, and pattern printing', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Functions, Variable Scope and Recursion',
-              subtopics: ['Function declaration, definition, and calling', 'Call by value vs Call by reference intro', 'Storage classes (auto, register, static, extern)', 'Recursive functions (Factorial, Fibonacci, GCD)'],
-              objectives: [{ code: 'PPS-U3-LO3', description: 'Decompose software into modular functions and formulate recursive call stacks', bloomLevel: 'ANALYZE' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 4,
-          title: 'Arrays and Pointers in C',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'One-Dimensional and Multidimensional Arrays',
-              subtopics: ['Array indexing, memory layout, bounds checking', 'Character arrays and null-terminated strings', '2D arrays for matrix addition and multiplication'],
-              objectives: [{ code: 'PPS-U4-LO1', description: 'Manipulate linear and multi-dimensional matrices and strings in memory', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Pointers and Pointer Arithmetic',
-              subtopics: ['Address-of operator (&) and dereference operator (*)', 'Pointer declarations and initialization', 'Pointer arithmetic and array-pointer equivalence', 'Pointers to int, float, char'],
-              objectives: [{ code: 'PPS-U4-LO2', description: 'Explain pointer memory addresses and traverse array buffers using pointer arithmetic', bloomLevel: 'ANALYZE' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 5,
-          title: 'Structures and File Management',
-          hours: '06 Hours',
-          topics: [
-            {
-              title: 'Structures and Arrays of Structures',
-              subtopics: ['struct declaration and member access (.)', 'Memory alignment and padding', 'Array of structures (student database)', 'Pointers to structures and arrow operator (->)'],
-              objectives: [{ code: 'PPS-U5-LO1', description: 'Model real-world heterogeneous records using C structures and structure pointers', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'File I/O Operations',
-              subtopics: ['FILE pointer, fopen() modes ("r", "w", "a", "rb", "wb")', 'Character I/O (fgetc, fputc)', 'Formatted I/O (fscanf, fprintf)', 'Block I/O (fread, fwrite) and fclose()'],
-              objectives: [{ code: 'PPS-U5-LO2', description: 'Persist and retrieve structured data records from external text and binary files', bloomLevel: 'APPLY' }]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      code: '24AF1000VS109',
-      name: 'Communication Skills',
-      category: 'AEC-01',
-      credits: 2,
-      teachingScheme: '2L-0T-0P',
-      evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'I',
-      group: 'GROUP A',
-      description: 'Linguistic proficiency, LSRW skills, phonetics, grammar, public speaking, and technical report writing.',
-      textbooks: [
-        { title: 'Communication Skills for Engineers', author: 'Mohd. Ashraf Rizvi', publisher: 'Tata McGraw Hill' },
-        { title: 'Communication Skills', author: 'Sanjay Kumar, Pushp Lata', publisher: 'Oxford University Press' }
-      ],
-      units: [
-        {
-          unitNumber: 1,
-          title: 'Communication and Communication Processes',
-          hours: '04 Hours',
-          topics: [
-            {
-              title: 'Elements and Barriers to Communication',
-              subtopics: ['Sender, encoding, channel, receiver, decoding, feedback loop', 'Psychological, mechanical, physical, and linguistic barriers', 'Strategies to overcome barriers'],
-              objectives: [{ code: 'CS-U1-LO1', description: 'Identify communication models and eliminate interpersonal and organizational transmission barriers', bloomLevel: 'UNDERSTAND' }]
-            },
-            {
-              title: 'Reading and Listening Skills',
-              subtopics: ['Skimming, scanning, extensive and intensive reading', 'Active vs passive listening', 'Barriers to effective listening'],
-              objectives: [{ code: 'CS-U1-LO2', description: 'Demonstrate comprehension via active listening and strategic reading techniques', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 2,
-          title: 'Speaking, Verbal and Non-verbal Communication',
-          hours: '04 Hours',
-          topics: [
-            {
-              title: 'Spoken Communication & Group Discussions',
-              subtopics: ['Public speaking anxiety management', 'Principles and dynamics of Group Discussion (GD)', 'Leadership, moderation, and conflict mitigation in GD'],
-              objectives: [{ code: 'CS-U2-LO1', description: 'Participate constructively in professional group discussions and deliver structured public speeches', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Non-verbal Communication & Body Language',
-              subtopics: ['Kinesics (gestures, postures, facial expressions)', 'Proxemics (personal space)', 'Paralanguage (pitch, pace, tone, modulation)'],
-              objectives: [{ code: 'CS-U2-LO2', description: 'Interpret and employ appropriate non-verbal cues and vocal modulation during presentations', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 3,
-          title: 'Study of Sounds in English',
-          hours: '02 Hours',
-          topics: [
-            {
-              title: 'Phonetics and Phonemic Transcription',
-              subtopics: ['Speech organs and articulation mechanism', '44 English phonemes: 20 vowels (monophthongs & diphthongs) and 24 consonants', 'IPA transcription and syllable stress'],
-              objectives: [{ code: 'CS-U3-LO1', description: 'Transcribe words using standard International Phonetic Alphabet (IPA) and mark word stress', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 4,
-          title: 'English Grammar in Engineering Practice',
-          hours: '05 Hours',
-          topics: [
-            {
-              title: 'Tenses, Articles and Prepositions',
-              subtopics: ['12 verb tenses and their contextual usage in technical reports', 'Definite and indefinite articles (a, an, the)', 'Prepositions of time, place, and direction'],
-              objectives: [{ code: 'CS-U4-LO1', description: 'Apply correct grammatical tenses, articles, and prepositions in technical prose', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Auxiliary Verbs and Common Syntactic Errors',
-              subtopics: ['Modal auxiliaries (can, could, should, must, might)', 'Subject-verb agreement rules', 'Dangling modifiers and run-on sentences'],
-              objectives: [{ code: 'CS-U4-LO2', description: 'Detect and correct common sentence structure and subject-verb concord errors', bloomLevel: 'ANALYZE' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 5,
-          title: 'Technical Writing Skills',
-          hours: '04 Hours',
-          topics: [
-            {
-              title: 'Technical Report Writing',
-              subtopics: ['Report formats and structures (Title, Abstract, Introduction, Methodology, Results, Conclusion)', 'Formal technical style and objectivity'],
-              objectives: [{ code: 'CS-U5-LO1', description: 'Draft comprehensive, logically structured engineering and technical reports', bloomLevel: 'CREATE' }]
-            },
-            {
-              title: 'Professional Correspondence & Resumes',
-              subtopics: ['Official email etiquette and conventions', 'Job application letters (cover letters)', 'Chronological vs Functional resume design'],
-              objectives: [{ code: 'CS-U5-LO2', description: 'Compose professional emails, job application letters, and ATS-friendly resumes', bloomLevel: 'CREATE' }]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      code: '24AF1000BS201',
-      name: 'Engineering Mathematics – II',
-      category: 'BSC',
-      credits: 3,
-      teachingScheme: '3L-0T-0P',
-      evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'II',
-      group: 'GROUP A',
-      description: 'Complex numbers, ODEs, higher-order differential equations, Fourier series, and Vector Calculus.',
-      textbooks: [
-        { title: 'Higher Engineering Mathematics', author: 'B. S. Grewal', publisher: 'Khanna Publishers' },
-        { title: 'Advanced Engineering Mathematics', author: 'Erwin Kreyszig', publisher: 'John Wiley & Sons' }
-      ],
-      units: [
-        {
-          unitNumber: 1,
-          title: 'Complex Numbers and Functions',
-          hours: '08 Hours',
-          topics: [
-            {
-              title: 'De-Moivre’s Theorem and Roots of Complex Numbers',
-              subtopics: ['Polar form r(cos theta + i sin theta)', 'De-Moivre’s theorem expansion', 'Finding nth roots of unity and complex values'],
-              objectives: [{ code: 'M2-U1-LO1', description: 'Apply De-Moivre’s theorem to evaluate complex roots and trigonometric polynomial identities', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Circular and Hyperbolic Functions',
-              subtopics: ['Definitions: sinh x, cosh x, tanh x', 'Relations between circular and hyperbolic functions (cos(ix) = cosh x, sin(ix) = i sinh x)', 'Separation of u + iv real and imaginary parts'],
-              objectives: [{ code: 'M2-U1-LO2', description: 'Separate transcendental functions into real and imaginary parts', bloomLevel: 'ANALYZE' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 2,
-          title: 'Ordinary Differential Equations of First Order and First Degree',
-          hours: '08 Hours',
-          topics: [
-            {
-              title: 'Linear and Bernoulli’s Differential Equations',
-              subtopics: ['First order linear DE dy/dx + Py = Q', 'Integrating factor IF = e^(integral P dx)', 'Bernoulli’s non-linear reduction dy/dx + Py = Q y^n'],
-              objectives: [{ code: 'M2-U2-LO1', description: 'Solve first order linear and reducible Bernoulli differential equations', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Exact Differential Equations and Integrating Factors',
-              subtopics: ['Condition of exactness dM/dy = dN/dx', 'Integrating factor inspection and rules', 'Orthogonal trajectories in Cartesian and polar'],
-              objectives: [{ code: 'M2-U2-LO2', description: 'Identify exact equations and determine orthogonal trajectories of geometric families', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Engineering Applications of First Order ODEs',
-              subtopics: ['Newton’s Law of Cooling', 'RL and RC electrical circuits transient responses', 'Mechanical damping models'],
-              objectives: [{ code: 'M2-U2-LO3', description: 'Model electrical circuits and thermal cooling systems using first order ODEs', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 3,
-          title: 'Linear Differential Equations with Constant Coefficients',
-          hours: '08 Hours',
-          topics: [
-            {
-              title: 'Complementary Functions and Particular Integrals',
-              subtopics: ['Auxiliary equation with real, repeated, and complex roots', 'Short-cut methods for PI with e^(ax), sin(ax), cos(ax), x^m, e^(ax)V'],
-              objectives: [{ code: 'M2-U3-LO1', description: 'Compute general solutions of higher order LDEs with constant coefficients', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Method of Variation of Parameters',
-              subtopics: ['Wronskian determinant W(y1, y2)', 'General particular integral formulation for sec x, tan x, 1/x'],
-              objectives: [{ code: 'M2-U3-LO2', description: 'Apply method of variation of parameters to solve non-homogeneous LDEs where shortcut rules fail', bloomLevel: 'ANALYZE' }]
-            },
-            {
-              title: 'Cauchy’s and Legendre’s Linear Equations',
-              subtopics: ['Transformation x = e^z', 'Reduction of variable coefficient equations to constant coefficient form'],
-              objectives: [{ code: 'M2-U3-LO3', description: 'Solve Cauchy-Euler homogeneous differential equations via logarithmic variable substitution', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 4,
-          title: 'Fourier Series',
-          hours: '08 Hours',
-          topics: [
-            {
-              title: 'Euler’s Formulae & Dirichlet’s Conditions',
-              subtopics: ['Dirichlet’s criteria for convergence', 'Fourier coefficients a0, an, bn over [-pi, pi] and [0, 2pi]', 'Piecewise continuous functions and jump discontinuities'],
-              objectives: [{ code: 'M2-U4-LO1', description: 'Expand periodic waveforms into full-range trigonometric Fourier series', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Half-Range Expansions and Arbitrary Intervals',
-              subtopics: ['Even and odd function symmetries', 'Half-range cosine series and sine series over [0, L]', 'Parseval’s identity for series sum evaluation'],
-              objectives: [{ code: 'M2-U4-LO2', description: 'Formulate half-range Fourier sine and cosine series for engineering boundary problems', bloomLevel: 'APPLY' }]
-            }
-          ]
-        },
-        {
-          unitNumber: 5,
-          title: 'Vector Calculus',
-          hours: '08 Hours',
-          topics: [
-            {
-              title: 'Gradient, Divergence and Curl',
-              subtopics: ['Del operator nabla', 'Directional derivative and gradient of scalar field', 'Divergence, curl, solenoidal (div V = 0) and irrotational (curl V = 0) vector fields', 'Scalar potential function phi'],
-              objectives: [{ code: 'M2-U5-LO1', description: 'Compute gradient, divergence, curl, and verify irrotational conservative force fields', bloomLevel: 'APPLY' }]
-            },
-            {
-              title: 'Vector Integral Theorems: Green, Gauss and Stokes',
-              subtopics: ['Line integrals and circulation', 'Green’s theorem in the plane', 'Gauss Divergence theorem (flux surface to volume)', 'Stokes’ theorem (circulation to curl flux)'],
-              objectives: [{ code: 'M2-U5-LO2', description: 'Evaluate vector surface, flux, and contour integrals using Gauss divergence and Stokes theorems', bloomLevel: 'EVALUATE' }]
             }
           ]
         }
@@ -753,12 +192,14 @@ async function main() {
     {
       code: '24AF2PHYBS202',
       name: 'Engineering Physics',
+      abbreviation: 'PHY',
       category: 'BSC',
       credits: 3,
-      teachingScheme: '3L-0T-0P',
+      teachingScheme: '3L-0T-2P (Theory: 3h, Lab: 6h/week)',
       evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'II',
-      group: 'GROUP A',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Dr. Vishal Kamathe',
       description: 'Acoustics, ultrasonics, optics, lasers, quantum mechanics, crystal structures, and physics of advanced materials.',
       textbooks: [
         { title: 'Engineering Physics', author: 'M. N. Avadhanulu and P. G. Kshirsagar', publisher: 'S. Chand' },
@@ -777,12 +218,12 @@ async function main() {
             },
             {
               title: 'Ultrasonic Wave Generation and Applications',
-              subtopics: ['Magnetostriction oscillator method', 'Piezoelectric quartz crystal method (resonance frequency)', 'Applications: NDT flaw detection, SONAR, ultrasonic cleaning'],
+              subtopics: ['Magnetostriction oscillator method', 'Piezoelectric quartz crystal method', 'Applications: NDT flaw detection, SONAR, ultrasonic cleaning'],
               objectives: [{ code: 'PHY-U1-LO2', description: 'Explain piezoelectric production of high-frequency ultrasound and its industrial NDT testing', bloomLevel: 'UNDERSTAND' }]
             },
             {
               title: 'Dielectrics and Polarization Mechanisms',
-              subtopics: ['Polar vs non-polar dielectrics', 'Electronic, ionic, orientational, and space-charge polarizations', 'Dielectric constant and dielectric breakdown'],
+              subtopics: ['Polar vs non-polar dielectrics', 'Electronic, ionic, orientational, and space-charge polarizations', 'Dielectric constant and breakdown'],
               objectives: [{ code: 'PHY-U1-LO3', description: 'Analyze dielectric polarization types and frequency response curves', bloomLevel: 'ANALYZE' }]
             }
           ]
@@ -794,12 +235,12 @@ async function main() {
           topics: [
             {
               title: 'Interference in Thin Films & Newton’s Rings',
-              subtopics: ['Cosine law for thin parallel film 2mu t cos r = n lambda', 'Wedge-shaped thin film fringe spacing', 'Newton’s rings apparatus, ring diameter formulas, wavelength and refractive index determination'],
+              subtopics: ['Cosine law for thin film 2mu t cos r = n lambda', 'Wedge-shaped thin film fringe spacing', 'Newton’s rings apparatus, ring diameter formulas, wavelength and refractive index determination'],
               objectives: [{ code: 'PHY-U2-LO1', description: 'Calculate thin film thicknesses and optical wavelengths from Newton’s rings diameter measurements', bloomLevel: 'APPLY' }]
             },
             {
               title: 'Lasers and Fiber Optics',
-              subtopics: ['Stimulated emission, spontaneous emission, population inversion, optical pumping', 'He-Ne Gas Laser and Semiconductor Diode Laser construction', 'Total internal reflection, acceptance angle, Numerical Aperture NA = sqrt(n1^2 - n2^2)'],
+              subtopics: ['Stimulated emission, spontaneous emission, population inversion, optical pumping', 'He-Ne Gas Laser and Semiconductor Diode Laser', 'Total internal reflection, acceptance angle, Numerical Aperture NA = sqrt(n1^2 - n2^2)'],
               objectives: [{ code: 'PHY-U2-LO2', description: 'Explain laser population inversion dynamics and calculate optical fiber light gathering power', bloomLevel: 'APPLY' }]
             }
           ]
@@ -865,12 +306,14 @@ async function main() {
     {
       code: '24AF2EGRES204',
       name: 'Engineering Graphics',
+      abbreviation: 'EG',
       category: 'ESC',
       credits: 2,
-      teachingScheme: '2L-0T-0P',
+      teachingScheme: '2L-0T-2P (Theory: 4h, Lab: 6h/week)',
       evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'II',
-      group: 'GROUP A',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Mr. Akshay Kate',
       description: 'Orthographic projections, points, lines, planes, solids, sections, development, and isometric drawings.',
       textbooks: [
         { title: 'Engineering Drawing', author: 'N. D. Bhatt', publisher: 'Charotar Publishing House' },
@@ -942,12 +385,14 @@ async function main() {
     {
       code: '24AF1000ES206',
       name: 'Basic Electrical and Electronics Engineering',
+      abbreviation: 'BEE',
       category: 'ESC',
       credits: 3,
-      teachingScheme: '3L-0T-0P',
+      teachingScheme: '3L-0T-2P (Theory: 3h, Lab: 6h/week)',
       evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'II',
-      group: 'GROUP A',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Mrs. Sheetal Hotkar',
       description: 'DC & AC circuit laws, electrical machines, transformers, diodes, BJT amplifiers, and measuring instruments.',
       textbooks: [
         { title: 'Basic Electrical and Electronics Engineering', author: 'D. P. Kothari and I. J. Nagrath', publisher: 'McGraw Hill' },
@@ -1017,7 +462,7 @@ async function main() {
             },
             {
               title: 'Biasing and Single Stage RC Coupled Amplifier',
-              subtopics: ['Voltage divider (self) bias circuit and stability factor S', 'Transistor operation as small-signal amplifier', 'Circuit diagram and frequency response curve of RC coupled amplifier (bandwidth, 3dB cutoff frequencies)'],
+              subtopics: ['Voltage divider (self) bias circuit and stability factor S', 'Transistor operation as small-signal amplifier', 'Circuit diagram and frequency response curve of RC coupled amplifier'],
               objectives: [{ code: 'BEEE-U4-LO2', description: 'Analyze voltage amplification and frequency response of RC coupled amplifiers', bloomLevel: 'APPLY' }]
             }
           ]
@@ -1044,12 +489,14 @@ async function main() {
     {
       code: '24AF2CMEES208',
       name: 'Basic Civil and Mechanical Engineering',
+      abbreviation: 'BCME',
       category: 'ESC',
       credits: 3,
-      teachingScheme: '3L-0T-0P',
+      teachingScheme: '3L-0T-0P (Theory: 4h/week)',
       evaluationScheme: 'CA: 20, MSE: 20, ESE: 60',
-      semester: 'II',
-      group: 'GROUP A',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Mr. Ankush Patil',
       description: 'Introduction to civil engineering materials, building planning, surveying, thermodynamics, IC engines, and manufacturing processes.',
       textbooks: [
         { title: 'Elements of Civil Engineering', author: 'Anurag Kandya', publisher: 'Charotar Publishing' },
@@ -1121,12 +568,14 @@ async function main() {
     {
       code: '24AF1EEEES209',
       name: 'Energy and Environmental Engineering',
+      abbreviation: 'EEE',
       category: 'BSC',
       credits: 2,
-      teachingScheme: '2L-0T-0P',
+      teachingScheme: '2L-0T-0P (Theory: 1h/week)',
       evaluationScheme: 'CA: 50 (Audit Course)',
-      semester: 'II',
-      group: 'GROUP A',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Mr. Ankush Patil',
       description: 'Ecosystems, conventional and renewable energy sources, air pollution, and wastewater treatment technologies.',
       textbooks: [
         { title: 'A Textbook on Power System Engineering', author: 'A. Chakrabarti', publisher: 'Dhanpat Rai' },
@@ -1176,7 +625,7 @@ async function main() {
           topics: [
             {
               title: 'Air Pollutants, Acid Rain and Global Warming',
-              subtopics: ['Primary vs secondary pollutants (SOx, NOx, CO, particulate matter PM2.5/PM10)', 'Automobile emissions and catalytic converters', 'Mechanism of acid rain and greenhouse effect', 'Electrostatic precipitators and scrubbers for pollution control'],
+              subtopics: ['Primary vs secondary pollutants (SOx, NOx, CO, PM2.5/PM10)', 'Automobile emissions and catalytic converters', 'Mechanism of acid rain and greenhouse effect', 'Electrostatic precipitators and scrubbers for pollution control'],
               objectives: [{ code: 'EEE-U4-LO1', description: 'Analyze chemical mechanisms of atmospheric pollutants, acid rain, and flue gas scrubbing technologies', bloomLevel: 'ANALYZE' }]
             }
           ]
@@ -1198,12 +647,14 @@ async function main() {
     {
       code: '24AF1000VS211',
       name: 'Design Thinking',
+      abbreviation: 'DT',
       category: 'VSEC',
       credits: 2,
-      teachingScheme: '2L-0T-0P',
+      teachingScheme: '2L-0T-0P (Theory: 2h/week)',
       evaluationScheme: 'CA: 60, ESE: 40',
-      semester: 'II',
-      group: 'GROUP A',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Dr. Amruta Surana',
       description: 'Creative problem solving, empathy, Kolb’s learning styles, iterative prototyping, and customer-centric product design.',
       textbooks: [
         { title: 'Karmic Design Thinking', author: 'Prof. Bala Ramadurai', publisher: 'Self-published' },
@@ -1271,34 +722,151 @@ async function main() {
           ]
         }
       ]
+    },
+    {
+      code: '24AF1000IK210',
+      name: 'Indian Knowledge System',
+      abbreviation: 'IKS',
+      category: 'IKS',
+      credits: 2,
+      teachingScheme: '2L-0T-0P (Theory: 2h/week)',
+      evaluationScheme: 'CA: 60, ESE: 40',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Mr. Hrishikesh Chitrakar',
+      description: 'Historical scientific heritage of India: Ancient mathematics, astronomy, metallurgy, town planning, and environmental ethics.',
+      textbooks: [
+        { title: 'Introduction to Indian Knowledge System: Concepts and Applications', author: 'B. Mahadevan, V. R. Bhat, Nagendra Pavana R. N.', publisher: 'PHI Learning' }
+      ],
+      units: [
+        {
+          unitNumber: 1,
+          title: 'Introduction to Indian Knowledge System & Philosophical Foundations',
+          hours: '04 Hours',
+          topics: [
+            {
+              title: 'Overview of Vedic & Scientific Heritage of Ancient India',
+              subtopics: ['Vedas, Vedangas, Upavedas overview', 'Epistemology (Pramana Sastra: Pratyaksha, Anumana, Sabda)', 'Holistic scientific world-view'],
+              objectives: [{ code: 'IKS-U1-LO1', description: 'Explain the epistemological basis and structure of ancient Indian knowledge traditions', bloomLevel: 'UNDERSTAND' }]
+            }
+          ]
+        },
+        {
+          unitNumber: 2,
+          title: 'Mathematics and Astronomy in Ancient India',
+          hours: '06 Hours',
+          topics: [
+            {
+              title: 'Sulba Sutras, Decimal System & Calculus Origins',
+              subtopics: ['Sulba Sutras geometry (Baudhayana theorem)', 'Decimal place-value system and zero (Sunya)', 'Aryabhata (trigonometric sine tables, Earth rotation)', 'Madhava of Sangamagrama (infinite series for pi, sine, cosine)'],
+              objectives: [{ code: 'IKS-U2-LO1', description: 'Trace historical mathematical developments and infinite series in the Kerala School of Astronomy', bloomLevel: 'ANALYZE' }]
+            }
+          ]
+        },
+        {
+          unitNumber: 3,
+          title: 'Engineering, Metallurgy & Architectural Heritage',
+          hours: '06 Hours',
+          topics: [
+            {
+              title: 'Civil Town Planning, Stepwells and Corrosion-Resistant Metallurgy',
+              subtopics: ['Indus Valley / Harappan water management & sanitation', 'Traditional stepwells (Vavs) of western India', 'Wootz steel and the rustless Iron Pillar of Delhi', 'Vastu Sastra principles in temple architecture'],
+              objectives: [{ code: 'IKS-U3-LO1', description: 'Analyze metallurgical and structural civil engineering feats of ancient India', bloomLevel: 'UNDERSTAND' }]
+            }
+          ]
+        },
+        {
+          unitNumber: 4,
+          title: 'Health, Wellness, Yoga & Environmental Sustainability',
+          hours: '04 Hours',
+          topics: [
+            {
+              title: 'Ayurvedic Principles & Sustainable Ecological Living',
+              subtopics: ['Ayurvedic fundamentals: Tridosha theory (Vata, Pitta, Kapha) and Dinacharya', 'Patanjali Ashtanga Yoga principles', 'Ecological reverence in ancient Indian texts (Vrikshayurveda)'],
+              objectives: [{ code: 'IKS-U4-LO1', description: 'Synthesize traditional holistic health models with sustainable engineering practices', bloomLevel: 'APPLY' }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      code: '24AF1000CC212A',
+      name: 'Integrated Personality Development',
+      abbreviation: 'CC-IPD',
+      category: 'CC',
+      credits: 2,
+      teachingScheme: '1L-0T-2P (Theory: 1h/week)',
+      evaluationScheme: 'CA: 60, Presentation: 40',
+      semester: 'I',
+      group: 'GROUP B',
+      faculty: 'Mr. Ankush Patil',
+      description: 'Values, soft skills, character building, stress management, disaster relief case studies, and civic responsibility.',
+      textbooks: [
+        { title: 'IPDC Workbook-1 & 2', author: 'BAPS IPDC Team', publisher: 'B.A.P.S. Swaminarayan Sanstha' }
+      ],
+      units: [
+        {
+          unitNumber: 1,
+          title: 'Remaking Yourself, Values & Civic Responsibility',
+          hours: '06 Hours',
+          topics: [
+            {
+              title: 'Begin with the End in Mind & Being Addiction-Free',
+              subtopics: ['SMART goals visualization', 'Detrimental effects of addictions on health and career', 'Habit transformation frameworks'],
+              objectives: [{ code: 'IPD-U1-LO1', description: 'Formulate SMART career milestones and establish personal health disciplines', bloomLevel: 'APPLY' }]
+            },
+            {
+              title: 'Selfless Service & Disaster Relief Case Study',
+              subtopics: ['Lessons of Seva (Selfless service)', 'Case study: 2001 Bhuj earthquake relief operations', 'Youth volunteerism in emergency response'],
+              objectives: [{ code: 'IPD-U1-LO2', description: 'Analyze emergency disaster mobilization and empathetic civic service delivery', bloomLevel: 'ANALYZE' }]
+            },
+            {
+              title: 'Teamwork, Soft Skills & An Ideal Citizen',
+              subtopics: ['Six steps of effective teamwork and harmony', 'Leadership through humility (Leading without Leading)', 'Core civic values: Integrity, responsibility, loyalty, and punctuality'],
+              objectives: [{ code: 'IPD-U1-LO3', description: 'Demonstrate collaborative teamwork principles and ethical decision making in professional settings', bloomLevel: 'APPLY' }]
+            }
+          ]
+        },
+        {
+          unitNumber: 2,
+          title: 'Emotional Resilience, Stress Management & Financial Skills',
+          hours: '06 Hours',
+          topics: [
+            {
+              title: 'Facing Failures & Timeless Wisdom for Daily Life',
+              subtopics: ['Overcoming academic and career setbacks', 'Ancient wisdom applied to modern mental stability', 'Principles of forgiveness and emotional reconciliation'],
+              objectives: [{ code: 'IPD-U2-LO1', description: 'Build emotional resilience to withstand failure and resolve interpersonal conflicts constructively', bloomLevel: 'UNDERSTAND' }]
+            },
+            {
+              title: 'Stress Management & Health Optimization',
+              subtopics: ['Root causes of student stress', 'Coping strategies: Exercise, nutrition, sleep cycles', 'Mindfulness and mental clarity'],
+              objectives: [{ code: 'IPD-U2-LO2', description: 'Apply physiological and psychological stress alleviation routines', bloomLevel: 'APPLY' }]
+            },
+            {
+              title: 'Financial Planning & Social Circle Influence',
+              subtopics: ['Budgeting basics and early saving discipline', 'Avoiding debt traps', 'Impact of company/peer group on long-term character'],
+              objectives: [{ code: 'IPD-U2-LO3', description: 'Draft personal financial budgets and cultivate positive professional peer networks', bloomLevel: 'EVALUATE' }]
+            }
+          ]
+        }
+      ]
     }
   ];
 
-  for (const subj of syllabusData) {
-    console.log(`Seeding subject: ${subj.code} - ${subj.name}...`);
-    const createdSubj = await prisma.subject.upsert({
-      where: { id: `subj-${subj.code}` },
-      update: {
-        name: subj.name,
-        category: subj.category,
-        credits: subj.credits,
-        teachingScheme: subj.teachingScheme,
-        evaluationScheme: subj.evaluationScheme,
-        semester: subj.semester,
-        group: subj.group,
-        description: subj.description,
-      },
-      create: {
+  for (const subj of semester1Subjects) {
+    console.log(`Seeding Semester 1 subject: [${subj.abbreviation}] ${subj.code} - ${subj.name}...`);
+    const createdSubj = await prisma.subject.create({
+      data: {
         id: `subj-${subj.code}`,
         code: subj.code,
-        name: subj.name,
+        name: `${subj.name} (${subj.abbreviation})`,
         category: subj.category,
         credits: subj.credits,
         teachingScheme: subj.teachingScheme,
         evaluationScheme: subj.evaluationScheme,
-        semester: subj.semester,
+        semester: 'I',
         group: subj.group,
-        description: subj.description,
+        description: `${subj.description} • Faculty: ${subj.faculty}`,
         userId: student.id,
       },
     });
@@ -1395,7 +963,7 @@ async function main() {
             intervalDays: 1.0,
             repetitionNumber: 0,
             easeFactor: 2.5,
-            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // due tomorrow
+            dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
             status: 'PENDING',
           },
         });
@@ -1403,8 +971,8 @@ async function main() {
     }
   }
 
-  // 3. Seed Sample Official Study Materials & Grounded RAG Chunks for Maths-I, Chemistry, and PPS
-  console.log('Seeding Sample Grounded Study Notes & Chunks...');
+  // 3. Seed Sample Grounded Study Notes & Chunks for EM-I & Physics
+  console.log('Seeding Sample Grounded Notes for Semester 1 Subjects...');
   const mathsTopic = await prisma.topic.findFirst({
     where: { title: { contains: 'Eigen values' } },
   });
@@ -1414,7 +982,7 @@ async function main() {
       data: {
         subjectId: 'subj-24AF1000BS101',
         topicId: mathsTopic.id,
-        title: 'DBATU Unit 1 Notes: Eigenvalues, Eigenvectors & Cayley-Hamilton Theorem',
+        title: 'DBATU Sem 1 Notes: Eigenvalues, Eigenvectors & Cayley-Hamilton Theorem',
         originalFilename: 'DBATU_Maths1_Unit1_Eigenvalues.pdf',
         fileType: 'pdf',
         filePath: '/uploads/DBATU_Maths1_Unit1_Eigenvalues.pdf',
@@ -1445,16 +1013,13 @@ async function main() {
         }
       ],
     });
-  }
 
-  // 4. Seed Exemplar Multi-Type Questions & Test Blueprint for Mathematics-I Unit 1
-  console.log('Seeding Sample Test & Validated Questions...');
-  if (mathsTopic) {
+    // Seed Sample Validated Test
     const sampleTest = await prisma.test.create({
       data: {
         userId: student.id,
         subjectId: 'subj-24AF1000BS101',
-        title: 'Diagnostic Test: Linear Algebra & Eigenvalues (Unit 1)',
+        title: 'Diagnostic Test: Linear Algebra & Eigenvalues (EM-I Unit 1)',
         scopeType: 'UNIT',
         scopeConfigJson: JSON.stringify([mathsTopic.id]),
         difficulty: 'MEDIUM',
@@ -1477,9 +1042,9 @@ async function main() {
         cognitiveSkill: 'conceptual',
         optionsJson: JSON.stringify(['3 and 4', '2 and 6', '1 and 12', '-3 and -4']),
         correctKey: '3 and 4',
-        explanation: 'By the fundamental properties of eigenvalues: Sum of eigenvalues = Trace = 7, and Product of eigenvalues = Determinant = 12. Solving lambda^2 - (Trace)lambda + Det = 0 gives lambda^2 - 7lambda + 12 = 0, so (lambda - 3)(lambda - 4) = 0. The eigenvalues are 3 and 4.',
+        explanation: 'By the fundamental properties of eigenvalues: Sum of eigenvalues = Trace = 7, and Product of eigenvalues = Determinant = 12. Solving lambda^2 - 7lambda + 12 = 0 gives eigenvalues 3 and 4.',
         maxMarks: 4.0,
-        sourceReference: 'DBATU Maths-I Unit 1 (p. 15)',
+        sourceReference: 'DBATU EM-I Unit 1',
         validationStatus: 'VALID',
       },
     });
@@ -1504,9 +1069,9 @@ async function main() {
           'Eigenvectors corresponding to distinct eigenvalues of a symmetric matrix are mutually orthogonal.',
           'The eigenvalues of an upper triangular matrix are its diagonal elements.'
         ]),
-        explanation: 'Statements A, B, and C are correct mathematical theorems. Statement D is false because a matrix is singular (det=0) if and only if zero is an eigenvalue; for non-singular matrices, all eigenvalues must be non-zero.',
+        explanation: 'Statements A, B, and C are correct mathematical theorems. Statement D is false because non-singular matrices cannot have zero eigenvalues.',
         maxMarks: 4.0,
-        sourceReference: 'DBATU Maths-I Unit 1 Grewal Sec 2.14',
+        sourceReference: 'DBATU EM-I Unit 1 Grewal Sec 2.14',
         validationStatus: 'VALID',
       },
     });
@@ -1523,9 +1088,9 @@ async function main() {
         correctKey: '35',
         toleranceMin: 35,
         toleranceMax: 35,
-        explanation: 'Since A is an upper triangular matrix, its eigenvalues are lambda_1 = 2 and lambda_2 = 3. By spectral theorem properties, the eigenvalues of A^3 are lambda_1^3 = 2^3 = 8 and lambda_2^3 = 3^3 = 27. The trace of A^3 is the sum of its eigenvalues: 8 + 27 = 35.',
+        explanation: 'The eigenvalues of upper triangular A are 2 and 3. The eigenvalues of A^3 are 2^3=8 and 3^3=27. Trace(A^3) = 8 + 27 = 35.',
         maxMarks: 4.0,
-        sourceReference: 'DBATU Maths-I Unit 1 Kreyszig Sec 8.4',
+        sourceReference: 'DBATU EM-I Unit 1 Kreyszig Sec 8.4',
         validationStatus: 'VALID',
       },
     });
@@ -1539,17 +1104,10 @@ async function main() {
         difficulty: 'MEDIUM',
         bloomLevel: 'UNDERSTAND',
         cognitiveSkill: 'derivation',
-        rubricJson: JSON.stringify({
-          criteria: [
-            { name: 'Statement of Cayley-Hamilton Theorem', weight: 40, description: 'Every square matrix satisfies its own characteristic equation P(A) = 0' },
-            { name: 'Multiplication by A^-1', weight: 30, description: 'Multiplying through by inverse gives A^-1 isolated in terms of powers of A' },
-            { name: 'Invertibility condition', weight: 30, description: 'Specifying det(A) != 0 or constant term k0 != 0' }
-          ]
-        }),
-        correctKey: 'Every square matrix satisfies its characteristic polynomial: A^n + c_{n-1}A^{n-1} + ... + c_0 I = 0. Multiplying by A^-1 gives A^-1 = (-1/c_0)[A^{n-1} + ... + c_1 I] when det(A) != 0.',
-        explanation: 'The Cayley-Hamilton theorem establishes that replacing lambda with matrix A in its characteristic equation produces the zero matrix. Premultiplying or postmultiplying by A^-1 allows isolating A^-1 as a polynomial in A of degree n-1.',
+        correctKey: 'Every square matrix satisfies its characteristic polynomial. Multiplying by A^-1 allows expressing A^-1 in terms of powers of A.',
+        explanation: 'The Cayley-Hamilton theorem states that P(A) = 0. Multiplying through by A^-1 yields A^-1 in terms of degree n-1 polynomial powers.',
         maxMarks: 4.0,
-        sourceReference: 'DBATU Maths-I Unit 1',
+        sourceReference: 'DBATU EM-I Unit 1',
         validationStatus: 'VALID',
       },
     });
@@ -1565,14 +1123,13 @@ async function main() {
         cognitiveSkill: 'recall',
         optionsJson: JSON.stringify(['True', 'False']),
         correctKey: 'True',
-        explanation: 'If A*x = lambda*x with x != 0 and lambda != 0, multiplying both sides by A^-1 gives x = lambda*(A^-1*x) => A^-1*x = (1/lambda)*x. Thus 1/lambda is an eigenvalue of A^-1 with the same eigenvector x.',
+        explanation: 'True. Multiplying A*x = lambda*x by A^-1 produces A^-1*x = (1/lambda)*x.',
         maxMarks: 4.0,
-        sourceReference: 'DBATU Maths-I Unit 1',
+        sourceReference: 'DBATU EM-I Unit 1',
         validationStatus: 'VALID',
       },
     });
 
-    // Seed Validation records for these questions
     for (const q of [q1, q2, q3, q4, q5]) {
       await prisma.questionValidation.create({
         data: {
@@ -1580,13 +1137,13 @@ async function main() {
           syllabusAligned: true,
           factuallySupported: true,
           unambiguous: true,
-          evaluatorRemarks: 'Verified against DBATU First Year Curriculum 2024-2025 and standard reference textbooks.',
+          evaluatorRemarks: 'Verified against DBATU First Year Semester 1 Timetable Curriculum.',
         },
       });
     }
   }
 
-  console.log('--- DBATU Syllabus Seeding Completed Successfully! ---');
+  console.log('--- DBATU Semester 1 Timetable Subjects Seeded Successfully! ---');
 }
 
 main()
