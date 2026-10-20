@@ -12,6 +12,16 @@ const nextConfig = {
         destination: '/student/dashboard',
         permanent: false,
       },
+      {
+        source: '/student/syllabus',
+        destination: '/student/subjects',
+        permanent: false,
+      },
+      {
+        source: '/student/notes',
+        destination: '/student/revision',
+        permanent: false,
+      },
     ];
   },
 };
