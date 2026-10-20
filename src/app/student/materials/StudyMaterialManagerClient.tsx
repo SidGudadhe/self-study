@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import {
   FileText,
@@ -18,6 +18,10 @@ import {
   ArrowRight,
   Calculator,
   Lightbulb,
+  UploadCloud,
+  FileUp,
+  Loader2,
+  Check,
 } from 'lucide-react';
 
 interface Topic {
@@ -94,6 +98,60 @@ export default function StudyMaterialManagerClient({ subjects, initialMaterials 
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [inspectChunkMat, setInspectChunkMat] = useState<StudyMaterial | null>(null);
+
+  // Device file upload state
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadedFileInfo, setUploadedFileInfo] = useState<{
+    name: string;
+    sizeKb: number;
+    pages: number;
+  } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDeviceFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    setErrorMsg('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('materialType', materialType);
+
+      const res = await fetch('/api/materials/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to process file from device.');
+      }
+
+      setFileName(data.fileName);
+      if (!title || title.trim() === '') {
+        setTitle(data.suggestedTitle);
+      }
+      setContent(data.extractedText);
+      setUploadedFileInfo({
+        name: data.fileName,
+        sizeKb: Math.round(data.fileSize / 1024),
+        pages: data.pagesCount,
+      });
+      setSuccessMsg(
+        `Extracted ${data.pagesCount} ${
+          materialType === 'PPT_PRESENTATION' ? 'slides' : 'pages'
+        } from "${data.fileName}". Review and click Index Material to save!`
+      );
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error uploading file from device.');
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   // Filter state for material list
   const [filterSubjectId, setFilterSubjectId] = useState<string>('ALL');
@@ -452,23 +510,127 @@ Comprehensive textbook extraction containing fundamental definitions, formulas, 
             </div>
           </div>
 
-          {/* Filename indicator if PDF/PPT */}
+          {/* Device Upload Section for PDF / PPT */}
           {materialType !== 'TEXT_DOCUMENTARY' && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">
-                Document / Slide File Name
-              </label>
+            <div className="space-y-3 p-4 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-200 flex items-center gap-2">
+                  <UploadCloud className="w-4 h-4 text-indigo-400" />
+                  {materialType === 'PDF_DOCUMENT'
+                    ? 'Upload PDF Document from Device'
+                    : 'Upload PPT / PPTX Presentation from Device'}
+                </label>
+                {uploadedFileInfo && (
+                  <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> File Loaded & Parsed
+                  </span>
+                )}
+              </div>
+
+              {/* Hidden File Input */}
               <input
-                type="text"
-                value={fileName}
-                onChange={(e) => setFileName(e.target.value)}
-                placeholder={
+                type="file"
+                ref={fileInputRef}
+                onChange={handleDeviceFileUpload}
+                accept={
                   materialType === 'PDF_DOCUMENT'
-                    ? 'e.g., DBATU_EM1_Unit1_Matrices_Notes.pdf'
-                    : 'e.g., Physics_Unit1_Acoustics_LectureSlides.pptx'
+                    ? '.pdf,application/pdf'
+                    : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'
                 }
-                className="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                className="hidden"
               />
+
+              {/* File Drop / Click Card */}
+              <div
+                onClick={() => !uploadingFile && fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+                  uploadedFileInfo
+                    ? 'border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10'
+                    : 'border-slate-800 hover:border-indigo-500/60 bg-slate-900/40 hover:bg-slate-900'
+                }`}
+              >
+                {uploadingFile ? (
+                  <div className="flex flex-col items-center gap-2 py-2">
+                    <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+                    <p className="text-xs font-semibold text-slate-200">
+                      Reading & Extracting Text from Device...
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      Parsing page hierarchy, headings, and equations
+                    </p>
+                  </div>
+                ) : uploadedFileInfo ? (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                        {materialType === 'PDF_DOCUMENT' ? (
+                          <FileBox className="w-5 h-5" />
+                        ) : (
+                          <Presentation className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-100 font-mono">
+                          {uploadedFileInfo.name}
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          {uploadedFileInfo.sizeKb} KB • {uploadedFileInfo.pages}{' '}
+                          {materialType === 'PPT_PRESENTATION' ? 'slides' : 'pages'} extracted into editor below
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors whitespace-nowrap"
+                    >
+                      Choose Different File
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 py-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-600/15 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+                      <FileUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-200">
+                        {materialType === 'PDF_DOCUMENT'
+                          ? 'Click to Select PDF from Device'
+                          : 'Click to Select PPT / PPTX from Device'}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {materialType === 'PDF_DOCUMENT'
+                          ? 'Select any .pdf file (lecture notes, textbook chapter, question bank)'
+                          : 'Select any .ppt or .pptx presentation deck (slide notes, classroom slides)'}
+                      </p>
+                    </div>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-800 text-indigo-300 font-semibold border border-slate-700 mt-1">
+                      Browse Files
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Filename Input (editable) */}
+              <div className="space-y-1 pt-1">
+                <label className="text-[11px] font-semibold text-slate-400">
+                  Document / Slide File Name
+                </label>
+                <input
+                  type="text"
+                  value={fileName}
+                  onChange={(e) => setFileName(e.target.value)}
+                  placeholder={
+                    materialType === 'PDF_DOCUMENT'
+                      ? 'e.g., DBATU_EM1_Unit1_Matrices_Notes.pdf'
+                      : 'e.g., Physics_Unit1_Acoustics_LectureSlides.pptx'
+                  }
+                  className="w-full px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                />
+              </div>
             </div>
           )}
 
