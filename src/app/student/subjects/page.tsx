@@ -31,23 +31,23 @@ export default async function SubjectsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">My Curriculum Subjects</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Curriculum Subjects & Syllabus</h1>
           <p className="text-sm text-slate-400 mt-1">
-            DBATU B.Tech First Year Engineering Syllabus (NEP 2020 Guidelines, 2024-2025)
+            Complete DBATU B.Tech First Year Engineering Syllabus & Course Objectives (NEP 2024-2025)
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/student/syllabus"
-            className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+            href="/student/materials"
+            className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5"
           >
-            Syllabus Manager
+            <FileText className="w-3.5 h-3.5 text-indigo-400" /> Study Materials
           </Link>
           <Link
             href="/student/tests/new"
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all"
+            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all flex items-center gap-1.5"
           >
-            Create New Test
+            <GraduationCap className="w-3.5 h-3.5" /> Create New Test
           </Link>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { DoubtEngine } from './doubtEngine';
 
 export interface GroundedChunk {
   chunkId: string;
@@ -67,35 +68,47 @@ export class AIProvider {
       citationHeader = `> ℹ️ *Knowledge Note: This explanation draws from standard university academic curriculum as no personalized lecture notes have been uploaded for "${topicTitle}" yet.*\n\n`;
     }
 
-    // Call real Gemini API if key is set
+    // 1. Check for real Gemini API if configured
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey && apiKey.trim().length > 0) {
       try {
+        const historyText =
+          context.conversationHistory && context.conversationHistory.length > 0
+            ? `\nPrior Conversation Turns:\n${context.conversationHistory
+                .map((m) => `${m.sender.toUpperCase()}: ${m.content}`)
+                .join('\n')}\n`
+            : '';
+
         const prompt = `
-You are the expert university professor and personal AI tutor for ${subjectName} (DBATU Engineering Curriculum).
+You are an expert, empathetic university professor and 1-on-1 personal tutor for ${subjectName} (DBATU Engineering Curriculum).
 Unit: ${unitTitle}
 Topic: ${topicTitle}
 Pedagogical Mode: ${mode}
-${hasNotes ? `Uploaded Notes Context:\n${groundedChunks.map((c) => c.snippet).join('\n---\n')}` : 'Use authoritative engineering textbook knowledge.'}
 
-Student's input: "${studentQuestion || `Introduce and teach me this topic according to the ${mode} methodology.`}"
+${hasNotes ? `Grounded Syllabus Facts & Notes Context:\n${groundedChunks.map((c) => c.snippet).join('\n---\n')}` : 'Use authoritative engineering textbook knowledge.'}
+${historyText}
+Student's Current Inquiry: "${studentQuestion || `Introduce and teach me this topic according to the ${mode} methodology.`}"
 
-Instructions:
-- Provide clear mathematical/scientific equations in KaTeX ($...$ or $$...$$).
-- Break complex ideas into numbered step-by-step intuition.
-- Provide a concrete engineering example or worked problem.
-- Point out 1 common misconception/exam mistake students make.
-- End with 1 interactive check-for-understanding question.
+STRICT PEDAGOGICAL TEACHING RULES:
+1. NEVER copy-paste or dump raw paragraphs from the notes. Read and analyze the facts, then synthesize your answer in simple, natural, conversational language.
+2. If the student asks in Hindi or Hinglish (e.g. "samajh nahi aaya", "aasan bhasha me samjhao", "kaise hua", "step 2 dobara batao"), answer in warm, friendly, natural Hinglish with clear KaTeX formulas!
+3. Directly resolve the student's exact doubt. If they ask about a specific step, a derivation, an edge case, or why a condition is needed, focus 100% on that doubt with an intuitive analogy or a simple mini-example.
+4. Do NOT repeat text or templates from previous turns. If the student is confused, discard technical jargon and use a fresh real-world analogy.
+5. Format all mathematical and physical equations using clean KaTeX ($...$ or $$...$$).
+6. End with an encouraging check-for-understanding question.
 `;
 
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.3, maxOutputTokens: 1500 },
-          }),
-        });
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.4, maxOutputTokens: 1500 },
+            }),
+          }
+        );
 
         if (res.ok) {
           const data = await res.json();
@@ -109,82 +122,25 @@ Instructions:
           }
         }
       } catch (err) {
-        console.warn('Gemini API call failed, falling back to structured pedagogical generator', err);
+        console.warn('Gemini API call failed, activating Dynamic Pedagogical Doubt Engine', err);
       }
     }
 
-    // High-Fidelity Pedagogical Fallback Engine (Structured, complete, factual)
-    let body = '';
-    switch (mode) {
-      case 'SIMPLE':
-        body = `### 💡 Simple Explanation of **${topicTitle}**\n\n` +
-          `Think of **${topicTitle}** in **${unitTitle}** like a real-world tool in engineering:\n\n` +
-          `1. **The Core Intuition:** When we tackle real physical problems in ${subjectName}, calculations can get messy. This concept gives us a shortcut to break down complex behavior into simple, predictable rules.\n\n` +
-          `2. **Everyday Analogy:** Imagine tuning a musical instrument or balancing wheels on a car. Finding the "natural frequencies" or the balance lines is exactly what this mathematical/engineering method accomplishes!\n\n` +
-          `3. **Key Rule to Remember:** Always simplify the equations step-by-step and verify boundary values before substituting numbers.\n\n` +
-          `4. **Typical Student Mistake:** Confusing the algebraic signs during simplification or skipping initial condition verification.`;
-        break;
-
-      case 'EXAM_PREP':
-        body = `### 🎯 DBATU Exam Preparation Focus: **${topicTitle}**\n\n` +
-          `**Marks Weightage in DBATU Exams:** Typically assessed in Mid-Semester Exam (MSE, 20 marks) or End-Semester Exam (ESE, 60 marks) as a 4 to 8-mark question.\n\n` +
-          `#### 📋 High-Probability Exam Questions:\n` +
-          `1. **Derivation / Proof:** State and verify the fundamental theorem/formula governing ${topicTitle}.\n` +
-          `2. **Numerical Problem:** Direct calculation applying standard initial conditions.\n` +
-          `3. **Distinction:** Contrast this approach with the alternative conventional method.\n\n` +
-          `#### ⚠️ Key Examiner Pitfalls:\n` +
-          `- Ensure final numerical answers specify accurate SI units.\n` +
-          `- Explicitly write down the standard assumptions before starting step 1 of your derivation.`;
-        break;
-
-      case 'DEEP_DIVE':
-        body = `### 🔬 Rigorous Theoretical Deep Dive: **${topicTitle}**\n\n` +
-          `In **${unitTitle}**, **${topicTitle}** represents an essential mathematical/physical foundation.\n\n` +
-          `#### 1. Mathematical Formulation & Governing Equations:\n` +
-          `Consider the general governing relationship in continuous domains:\n` +
-          `$$\\mathcal{L}[u(\\mathbf{x})] = f(\\mathbf{x}) \\quad \\text{subject to} \\quad \\mathcal{B}[u] = g(\\mathbf{x})$$\n\n` +
-          `#### 2. Analytical Procedure:\n` +
-          `- **Step 1:** Establish linear independence of the basis functions or governing coordinate system.\n` +
-          `- **Step 2:** Formulate the characteristic matrix or differential operator determinant.\n` +
-          `- **Step 3:** Solve for roots/eigen-solutions and apply boundary orthogonality conditions.\n\n` +
-          `#### 3. Industrial Application:\n` +
-          `Modern structural analysis and signal processing software (e.g. ANSYS, MATLAB) compute these transformations iteratively using QR decomposition and finite element discretization.`;
-        break;
-
-      case 'QUICK_REVISION':
-        body = `### ⚡ 3-Minute Quick Revision: **${topicTitle}**\n\n` +
-          `- **Definition:** Central principle in ${unitTitle} for analyzing systems under governed engineering conditions.\n` +
-          `- **Core Formula:** Check governing relationship and characteristic equation.\n` +
-          `- **Must-Remember Constant/Rules:** Trace equals sum of roots; determinant equals product of roots.\n` +
-          `- **Exam Shortcut:** If testing options in an MCQ, check boundary conditions or dimensional consistency first!`;
-        break;
-
-      case 'PRACTICE':
-        body = `### 📝 Practice Challenge for **${topicTitle}**\n\n` +
-          `Let's test your conceptual grip right now!\n\n` +
-          `**Problem:** If you are given a standard system corresponding to this topic in **${unitTitle}**, what is the first critical check you must perform on the matrix or equation before applying standard reduction?\n\n` +
-          `*Type your answer below, and I will evaluate your reasoning against the DBATU marking rubric!*`;
-        break;
-
-      case 'DETAILED':
-      default:
-        body = `### 📚 Comprehensive Lesson: **${topicTitle}**\n\n` +
-          `#### 1. Learning Objectives\n` +
-          `By the end of this lesson, you will understand the theoretical definition, derivation, and engineering applications of **${topicTitle}** in **${subjectName}** (${unitTitle}).\n\n` +
-          `#### 2. Fundamental Concepts\n` +
-          `In engineering analysis, we often need to transform multi-dimensional equations into canonical forms to evaluate stability, response, and energy distribution. **${topicTitle}** provides the exact framework for this transformation.\n\n` +
-          `#### 3. Worked Engineering Example\n` +
-          `When applying this method in DBATU problem sets:\n` +
-          `- Write down the given inputs and system coefficients in standard format.\n` +
-          `- Formulate the characteristic equation or equilibrium statement.\n` +
-          `- Determine the roots or critical values and verify their physical feasibility.\n\n` +
-          `#### 4. Common Misconceptions\n` +
-          `A frequent error students make in exams is applying formulas without checking whether the initial conditions (e.g. non-singularity or symmetry) are satisfied. Always verify the domain prerequisites!`;
-        break;
-    }
+    // 2. Dynamic Pedagogical Doubt Engine
+    // Synthesizes facts, analyzes student intent, simplifies concepts, and resolves exact doubts
+    const dynamicBody = DoubtEngine.resolveDoubt({
+      subjectName,
+      subjectCode: context.subjectCode,
+      unitTitle,
+      topicTitle,
+      mode,
+      studentQuestion,
+      groundedSnippets: groundedChunks.map((c) => c.snippet),
+      conversationHistory: context.conversationHistory,
+    });
 
     return {
-      content: citationHeader + body,
+      content: citationHeader + dynamicBody,
       isGrounded: hasNotes,
       citations: groundedChunks,
     };

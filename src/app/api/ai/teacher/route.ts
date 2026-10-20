@@ -47,6 +47,20 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Fetch prior conversation history for multi-turn doubt context
+    let conversationHistory: Array<{ sender: string; content: string }> = [];
+    if (conv) {
+      const priorDbMessages = await prisma.chatMessage.findMany({
+        where: { conversationId: conv.id },
+        orderBy: { createdAt: 'desc' },
+        take: 8,
+      });
+      conversationHistory = priorDbMessages.reverse().map((m) => ({
+        sender: m.sender,
+        content: m.content,
+      }));
+    }
+
     // Save user message if provided
     if (message && message.trim().length > 0) {
       await prisma.chatMessage.create({
@@ -70,6 +84,7 @@ export async function POST(req: NextRequest) {
       mode,
       studentQuestion: message,
       groundedChunks,
+      conversationHistory,
     });
 
     // Save AI message

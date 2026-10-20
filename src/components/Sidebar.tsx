@@ -20,14 +20,12 @@ import {
 
 const navItems = [
   { name: 'Dashboard', href: '/student/dashboard', icon: LayoutDashboard },
-  { name: 'My Subjects', href: '/student/subjects', icon: BookOpen },
-  { name: 'Syllabus Manager', href: '/student/syllabus', icon: FolderTree },
+  { name: 'Subjects & Syllabus', href: '/student/subjects', icon: BookOpen },
   { name: 'Study Materials', href: '/student/materials', icon: FileText },
   { name: 'AI Teacher', href: '/student/teacher', icon: Bot, badge: '7 Modes' },
   { name: 'Test Series', href: '/student/tests', icon: GraduationCap, badge: 'Adaptive' },
   { name: 'My Performance', href: '/student/analytics', icon: TrendingUp },
-  { name: 'Revision Planner', href: '/student/revision', icon: CalendarDays, badge: 'Spaced' },
-  { name: 'Saved Notes', href: '/student/notes', icon: BookmarkCheck },
+  { name: 'Revision & Notes', href: '/student/revision', icon: CalendarDays, badge: 'Spaced' },
   { name: 'Settings', href: '/student/settings', icon: Settings },
 ];
 

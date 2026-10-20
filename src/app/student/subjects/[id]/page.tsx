@@ -234,11 +234,11 @@ export default async function SubjectDetailPage({
                             Test
                           </Link>
                           <Link
-                            href={`/student/notes/topic/${topic.id}`}
+                            href={`/student/revision?topicId=${topic.id}&tab=notes`}
                             className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 transition-all"
-                            title="View Revision Notes"
+                            title="View Revision Notes & Flashcards"
                           >
-                            <FileText className="w-4 h-4" />
+                            <FileText className="w-4 h-4 text-indigo-400" />
                           </Link>
                         </div>
                       </div>

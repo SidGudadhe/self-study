@@ -110,12 +110,48 @@ export default function TeacherClient({
     }
   };
 
-  // Start initial lesson
+  const prevTopicRef = useRef<string>(selectedTopicId);
+
+  // Start initial lesson or switch topic
   useEffect(() => {
-    if (selectedSubjectId && selectedTopicId && messages.length === 0) {
-      handleStartLesson();
+    if (selectedSubjectId && selectedTopicId) {
+      if (prevTopicRef.current !== selectedTopicId) {
+        prevTopicRef.current = selectedTopicId;
+        setConversationId(null);
+        setMessages([]);
+        handleStartLesson();
+      } else if (messages.length === 0) {
+        handleStartLesson();
+      }
     }
   }, [selectedSubjectId, selectedTopicId, mode]);
+
+  const handleQuickQuestion = (questionText: string) => {
+    if (loading) return;
+    setInputMessage('');
+    setMessages((prev) => [...prev, { sender: 'user', content: questionText }]);
+    setLoading(true);
+
+    fetch('/api/ai/teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subjectId: selectedSubjectId,
+        topicId: selectedTopicId,
+        mode,
+        message: questionText,
+        conversationId,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.message) {
+          setMessages((prev) => [...prev, { sender: 'ai', content: data.message.content }]);
+        }
+      })
+      .catch((err) => console.error('Quick question error:', err))
+      .finally(() => setLoading(false));
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -229,10 +265,10 @@ export default function TeacherClient({
 
           {noteSuccessId && (
             <Link
-              href={`/student/notes`}
+              href={`/student/revision?tab=notes`}
               className="text-xs text-emerald-400 font-semibold hover:underline flex items-center gap-1"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" /> View Saved Notes
+              <CheckCircle2 className="w-3.5 h-3.5" /> View in Revision Hub
             </Link>
           )}
         </div>
@@ -298,6 +334,53 @@ export default function TeacherClient({
           </div>
         )}
         <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Doubt & Simplification Chips */}
+      <div className="px-4 py-2 border-t border-slate-800/80 bg-slate-900/60 flex items-center gap-2 overflow-x-auto custom-scrollbar flex-shrink-0">
+        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex-shrink-0 mr-1">
+          Quick Doubts:
+        </span>
+        <button
+          type="button"
+          onClick={() => handleQuickQuestion('Mujhe ye bilkul aasan aur simple bhasha me samjhao')}
+          disabled={loading}
+          className="text-xs px-2.5 py-1 rounded-full bg-slate-800 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/40 transition-all whitespace-nowrap flex items-center gap-1"
+        >
+          💡 Aasan Bhasha Me Samjhao
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickQuestion('Iska ek real-life example ya analogy dekar clear karo')}
+          disabled={loading}
+          className="text-xs px-2.5 py-1 rounded-full bg-slate-800 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/40 transition-all whitespace-nowrap flex items-center gap-1"
+        >
+          🔍 Real-Life Analogy
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickQuestion('Step-by-step procedure batao taaki calculation me galti na ho')}
+          disabled={loading}
+          className="text-xs px-2.5 py-1 rounded-full bg-slate-800 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/40 transition-all whitespace-nowrap flex items-center gap-1"
+        >
+          ⚙️ Step-by-Step Procedure
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickQuestion('Agar ye condition fail ho ya zero ho jaye toh kya hoga?')}
+          disabled={loading}
+          className="text-xs px-2.5 py-1 rounded-full bg-slate-800 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/40 transition-all whitespace-nowrap flex items-center gap-1"
+        >
+          ❓ What If Condition Fails?
+        </button>
+        <button
+          type="button"
+          onClick={() => handleQuickQuestion('DBATU university exam me ispar kaisa question aayega aur kitne marks ka?')}
+          disabled={loading}
+          className="text-xs px-2.5 py-1 rounded-full bg-slate-800 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 border border-slate-700 hover:border-indigo-500/40 transition-all whitespace-nowrap flex items-center gap-1"
+        >
+          🎯 DBATU Exam Strategy
+        </button>
       </div>
 
       {/* Chat Input Box */}
