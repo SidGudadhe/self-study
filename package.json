@@ -6,6 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "prisma generate && next build",
     "start": "next start -p 3000",
+    "serve": "node start-server.js",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
