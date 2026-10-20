@@ -750,7 +750,8 @@ async function main() {
   let totalChunksCreated = 0;
 
   const extraDataset = require('./materials-dataset');
-  const COMBINED_MATERIALS = [...ALL_STUDY_MATERIALS, ...extraDataset];
+  const part2Dataset = require('./materials-dataset-part2');
+  const COMBINED_MATERIALS = [...ALL_STUDY_MATERIALS, ...extraDataset, ...part2Dataset];
 
   for (const item of COMBINED_MATERIALS) {
     const subject = await prisma.subject.findFirst({
